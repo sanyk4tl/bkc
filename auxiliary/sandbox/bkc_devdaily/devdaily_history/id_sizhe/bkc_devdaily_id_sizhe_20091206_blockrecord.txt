@@ -1,0 +1,140 @@
+>[meta info]
+>
+content_list:
+[临时笔记本]
+
+>
+用于存储与记录相应版本bkc_devdaily的块状态信息.
+
+
+>[############################meta info\]
+
+
+
+
+>[临时笔记本]
+
+>
+常用的echo格式, 记录一下, 方便查阅(片段)
+       -n     do not output the trailing newline
+       -e     enable interpretation of backslash escapes
+       -E     disable interpretation of backslash escapes (default)
+       --help display this help and exit
+       --version
+              output version information and exit
+       If -e is in effect, the following sequences are recognized:
+       \0NNN  the character whose ASCII code is NNN (octal)
+       \\     backslash
+       \a     alert (BEL)
+       \b     backspace
+       \c     suppress trailing newline
+       \f     form feed
+       \n     new line
+       \r     carriage return
+       \t     horizontal tab
+       \v     vertical tab
+
+>
+makefile segment
+
+    @echo ""
+    @echo "[#building all subsidiary modules]"
+    @echo ""
+    for sin_mod in $(bkc_mk_submod_list); do \
+        echo "" ;\
+        echo "[#making module: $$sin_mod]"; \
+        ${MAKE} -C $(bkc_mk_mtopdir)/src/$$sin_mod/build; \
+        echo "[#mv module output]"; \
+        $(CP) -fv $(bkc_mk_mtopdir)/src/$$sin_mod/out/lib$$sin_mod.a $(bkc_mk_mtopdir)/build; \
+    done
+    @echo ""
+
+    @echo ""
+    @echo "[#building all neighbor modules]"
+    @echo ""
+    for sin_mod in $(bkc_mk_nbmod_list); do \
+        echo "" ;\
+        echo "[#making module: $$sin_mod]"; \
+        ${MAKE} -C $(shell cd $(bkc_mk_mtopdir)/..; pwd)/$$sin_mod/build; \
+        echo "[#mv module output]"; \
+        $(CP) -fv $(shell cd $(bkc_mk_mtopdir)/..; pwd)/$$sin_mod/out/lib$$sin_mod.a $(bkc_mk_mtopdir)/build; \
+    done
+    @echo ""
+
+>
+条件和mutex的操作
+/*condition for printing daemon*/
+pthread_cond_t bkc_pthread_dae_pint_cond;
+/*mutex for bkc_pthread_dae_pint_cond*/
+pthread_mutex_t bkc_pthread_dae_pint_mutex;
+
+ret = pthread_mutex_init(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex), NULL);
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_mutex_lock(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_cond_init(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_cond), NULL);
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+
+ret = pthread_mutex_unlock(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_mutex_destroy(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_cond_destroy(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_cond) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+
+>
+注意保留前面的空格
+
+    BKC_DITT(BKC_STACK_RET_SUC, 0);
+    bkc_stack_t *stack_p = NULL;
+
+    BKC_FLOWCONTROL_TRY {
+        bkc_dlist_t *dlist_p = NULL;
+        bkc_dlist_operator_t op;
+
+        stack_p = BKC_MALLOC(sizeof(bkc_stack_t));
+        BKC_FC_CKTHROW(stack_p != NULL, 1, BKC_STACK_RET_ERR);
+
+        bkc_dlist_definit_op(&op);
+        op.opcode = BKC_DLIST_OPCODE_CREATE_LIST;
+        dlist_p = bkc_dlist_create(&op);
+        BKC_FC_CKTHROW(dlist_p != NULL, 2, BKC_STACK_RET_ERR);
+        BKC_RF(stack_p)->dlist_p = dlist_p;
+        BKC_CKPRT(BKC_RF(stack_p)->dlist_p != NULL);
+    }
+
+    BKC_FLOWCONTROL_CATCH {
+        BKC_FC_CASE (1) {
+            stack_p = NULL;
+            BKC_FC_BREAK;
+        }
+        BKC_FC_CASE (2) {
+            BKC_SFREE(stack_p);
+            stack_p = NULL;
+            BKC_FC_BREAK;
+        }
+        BKC_FC_DEFAULT {
+            BKC_FC_BREAK;
+        }
+    }
+
+    BKC_CKPRET(stack_p != NULL);
+    BKC_RETURN(stack_p);
+
+
+
+>[###########################临时笔记本\]
+
+
+>[update log]
+>
+20091206.夜.12:53
+bkc_devdaily_id_sizhe_20091206.txt
+
+>[##########################update log\]

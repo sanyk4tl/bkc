@@ -1,0 +1,43 @@
+##################################
+#configure info
+#
+
+#configure need not to be run duplicated
+if [ -f bkc_env_settings.cfg ]; then
+    exit 0;
+fi
+
+cat > bkc_env_settings.cfg << BKC_CFGIN_EOF
+ENV_BKC_MK_IS_CONFIGURE=yes
+BKC_CFGIN_EOF
+
+##################################
+#module general info
+#
+cat >> bkc_env_settings.cfg << BKC_CFGIN_EOF
+ENV_BKC_MK_MODNAME=bkc_store
+ENV_BKC_MK_SUBMOD_LIST=#
+ENV_BKC_MK_NBMOD_LIST=#
+
+#bkc_mk_location_toplevel(for toplevel module, like the total bkc module)
+#bkc_mk_location_embeded(for any inner module, like bkc_dlist)
+ENV_BKC_MK_MOD_LOCATION=bkc_mk_location_embeded
+
+BKC_CFGIN_EOF
+
+
+##################################
+#module upper info
+#
+cat >> bkc_env_settings.cfg << BKC_CFGIN_EOF
+
+#BKC_MK_MOD_TOPDIR is the keywords used in the makefile, which
+#means the toplevel dir of this module
+
+#module exposure path
+ENV_BKC_MK_EP=BKC_MK_MOD_TOPDIR/../../include
+
+#module share path
+ENV_BKC_MK_SP=BKC_MK_MOD_TOPDIR/../../build
+
+BKC_CFGIN_EOF

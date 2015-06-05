@@ -1,0 +1,25 @@
+current modulist
+----------------
+
+all modules availabe in bkc are as follows:
+
+bkc_dlist
+bkc_libc
+bkc_pthread
+bkc_queue
+bkc_string
+bkc_stack
+bkc_regex
+bkc_pasync
+bkc_time
+bkc_timer
+bkc_socket
+bkc_crc
+bkc_store
+
+
+more aims
+---------------
+x1. 
+add a language translator module for to let caller to use
+libraries that were not implemented in the language c through c interfaces.

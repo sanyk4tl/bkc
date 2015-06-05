@@ -1,0 +1,17 @@
+
+[indentation]
+indent_width=4
+indent_type=1
+indent_hard_tab_width=8
+detect_indent=false
+indent_mode=2
+
+[project]
+name=bkc_pthread_geany
+base_path=/media/disk/hut/project/fav_project/bkc/develop/bkc/src/bkc_pthread/auxiliary/sandbox/bkc_pthread_geany
+make_in_base_path=false
+description=
+run_cmd=
+
+[files]
+current_page=-1

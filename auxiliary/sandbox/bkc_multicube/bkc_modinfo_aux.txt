@@ -1,0 +1,269 @@
+>
+content:
+mod info
+mod group info
+desigment info
+符号标记
+
+
+>[mod info]
+>>
+module list:
+bkc_btree
+bkc_dlist
+bkc_libc
+bkc_pthread
+bkc_queue
+bkc_string
+bkc_stack
+bkc_regex
+bkc_pasync
+bkc_time
+bkc_timer
+bkc_net
+bkc_socket
+bkc_crc
+bkc_store
+共15个
+
+
+>>>
+bkc_dlist
+module designment status:
+
+module status:
+
+>>>
+bkc_libc
+module designment status:
+
+module status:
+
+>>>
+bkc_pthread
+module designment status:
+
+module status:
+
+>>>
+bkc_queue
+module designment status:
+
+module status:
+
+>>>
+bkc_string
+module designment status:
+
+module status:
+
+>>>
+bkc_stack
+module designment status:
+
+module status:
+
+>>>
+bkc_regex
+module designment status:
+
+module status:
+
+>>>
+bkc_pasync
+module designment status:
+
+module status:
+
+>>>
+bkc_time
+module designment status:
+
+module status:
+
+>>>
+bkc_timer
+module designment status:
+
+module status:
+
+>>>
+bkc_net
+module designment status:
+
+module status:
+
+>>>
+bkc_socket
+module designment status:
+
+module status:
+
+>>>
+bkc_crc
+module designment status:
+[ntbc]
+module status:
+[ntbc]
+
+>>>
+bkc_store
+module designment status:
+[ntbc]
+module status:
+[ntbc]
+
+
+
+>>
+modules need to be completed:
+8个
+bkc_btree
+bkc_libc
+bkc_pasync
+bkc_time
+bkc_timer
+bkc_net
+bkc_socket
+bkc_crc
+
+>>
+module need to test:
+3个
+bkc_stack
+bkc_queue
+bkc_regex[fc]
+bkc_pthread
+
+>>
+steady module list:
+2个
+bkc_dlist
+bkc_string
+
+>>
+module to be added
+>>>
+bkc_btree
+module designment status:
+[ntbc]
+module status:
+
+>[#############################mod info \]
+
+
+>[module designment diagram info]
+>
+new added designment list
+>>
+相应模块此时一般还没有加入, 处于to be added 状态
+(devdaily中会有相关的初步设计)
+
+>
+rolling designment list
+>>
+注意:一但一个模块加入, 其设计文档就放入相应模块, 
+那么此文档状态就从new added变为rolling了
+
+>>
+bkc_time_设计常记.dia
+[nc]
+>>
+bkc_timer设计常记.dia
+[nc]
+>>
+bkc_net设计常记.dia
+[nc]
+>>
+bkc_pasync设计常记.dia
+[nc]
+>>
+bkc_socket设计常记.dia
+[nc]
+>>
+bkc_pthread设计常记.dia
+[nc]
+
+
+
+>
+interim designment list
+>>
+相应模块会处于
+need to test状态
+>>
+bkc_regex设计常记.dia
+[nc]
+>>
+bkc_stack设计常记.dia
+[nc]
+>>
+bkc_queue设计常记.dia
+[nc]
+
+
+>
+steady designment list
+相应模块会处于
+steady module 状态
+>>
+bkc_dlist_designment.jpeg
+>>
+bkc_string_designment.jpeg
+
+
+>
+sbox designment list
+>>
+memory_gathering_module_designment.ddd
+>>
+bkc_net设计常记.dia
+>>
+bkc_btree设计常记.dia
+
+
+>
+放置:designment position
+一个文档最初会是bkc_multidocs中,
+一旦一个模块创建， 此文件将进入相应模块, 
+并会可以会经历new added->ncomplete->interim->mature的部分或者全部(new added对应着直接创建并加入这个模块的).
+对应的模块状态可以是new added(无相应模块实现状态)->rolling(need to be complete)->interim(need to be test)->mature(steady)
+
+[td | del]
+mature designment 文档一般会在 steady module list或者module need to test这两个阶段放入相应模块.
+其他designment和其他module 阶段, 相应designment都会放在bkc_multidocs中成长.
+
+>[#######################designment info \]
+
+
+>[mod group info]
+>
+目前有两个group概念, 即相应功能组.
+1. bkc_string_group.h
+提供string相关的一切操作,
+
+2. bkc_net_group.h
+提供net相关的一切操作.
+
+虽然用户可单独任意包含一个特殊的功能,但group就是为一个这个目标设计的, 否则用户可能需要为一个目标包含多个相关头文件,
+比如网络, 用户要手动包含bkc_net.h, bkc_socket.h. 
+
+>[#############################mod group info \]
+
+
+>
+符号标记:
+>>
+fc表示功能需要继续补充. 不涉及是否稳定的问题.
+>>
+设计文档的几个状态.
+na:new added
+ntbc: need to be need to be completed
+ntt: need to test
+st: steady 
+>>
+模块所处的几个状态.
+ntbc:need to be completed:
+ntt:need to test
+st: steady status
+

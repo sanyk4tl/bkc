@@ -1,0 +1,11 @@
+>You may use nm -s or nm --print-armap to list this index  table
+
+
+>[question]
+1. what's the formation of extracing a specified object in ar
+2. 需要试试，是否ar支持直接把lib打成大包。
+
+>[随想]
+1. ar 的文件格式也许需要看看。
+   看上去很有用
+>[随想\]

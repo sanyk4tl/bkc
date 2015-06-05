@@ -1,0 +1,400 @@
+bkc modules info
+================
+
+contents
+x1. definition and notations
+x2. module list
+x3. total module information
+x4. specifc module information
+
+
+x1. definition and notations
+
+the status of a module can be one of the following 6 selection:
+
+1. under designing modules
+   this status is tagged as [ud]
+   and it means that the modules is currently under designing, and the 
+   designment has not been completed yet.
+
+2. under completing modules
+   this status is tagged as [uc]
+   and it means that the designment of the modules has been completed already,
+   and it is just under completing.
+
+3. primitively completed
+   this status is tagged as [pc]
+   and it means that the module has been completed primitively, and the basic
+   functionalities have been completed already, but not the full functionalites.
+
+4. fully completed
+   this status is tagged as [fc]
+   and it means that the module has been fully completed already.
+
+5. under testing
+   this status is tagged as [ut]
+   and it means that the module is currrently under testing.
+
+6. steady
+   this status is tagged as [st]
+   and it means that the module has already been tested, and it's functionalites
+   can be used safely.
+
+7. mature
+   this status is tagged as [ma]
+   and it means that the module has already been used for a period of time(
+   the sign is that the new bugs and requirements are rarely emerging or 
+   relatively silent)
+
+
+the specifc information of each module include the following items:
+status path:
+  the status of the module, and the path of the status that the module
+  goes through, such as 
+  [ud][uc][pc][fc][ut][st]
+aims and ideas:
+  desigment aims or new added aims, pgr_id is recommended, such as
+  1. complete designment 
+        [sizhe]  
+claiming log:
+  the buddy who claim a item in the aims and ideas section, such as
+  1. [aim_id 1]
+     ...[sizhe]
+completed report:
+  1. [aim_id 1]
+     ...[sizhe]
+
+
+
+x2. module list
+
+bkc_dlist
+bkc_libc
+bkc_pthread
+bkc_queue
+bkc_string
+bkc_stack
+bkc_regex
+bkc_pasync
+bkc_time
+bkc_timer
+bkc_socket
+bkc_crc
+bkc_store
+
+the functionalites of each module can be refered in 
+segment "x4. specifc module information".
+
+
+
+x3. total module information
+
+>
+mature
+
+bkc_dlist
+bkc_string
+bkc_queue
+bkc_stack
+
+>
+steady
+bkc_libc
+bkc_pthread
+
+>
+under testing
+bkc_regex
+
+>
+fully completed
+
+>
+primitively completed
+
+>
+under completing modules:
+
+bkc_pasync
+bkc_time
+bkc_timer
+bkc_socket
+bkc_crc
+bkc_store
+
+>
+under designing modules:
+empty
+
+
+
+x4. specific module information
+
+>
+bkc_dlist
+
+functionality:
+  the double list module supplied in bkc
+
+status path:
+  [under designing modules][under completing modules][primitively completed]
+  [fully completed][under testing][steady][mature]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     completed this module
+     [sizhe]
+
+>
+bkc_string
+
+functionality:
+  The string module supplied in bkc, and the content of the string can be 
+  dynamicly changed. 
+
+status path:
+  [ud][uc][pc][fc][ut][st][ma]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     completed this module
+     [sizhe]
+
+>
+bkc_queue
+
+functionality:
+  The queue module supplied in bkc.
+
+status path:
+  [ud][uc][pc][fc][ut][st][ma]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     completed this module
+     [sizhe]
+
+>
+bkc_stack
+
+functionality:
+  The stack module supplied in bkc
+
+status path:
+  [ud][uc][pc][fc][ut][st][ma]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     completed this module
+     [sizhe]
+
+>
+bkc_libc
+
+functionality:
+  The basic standard c functionality supplied in bkc.
+
+status path:
+  [ud][uc][pc][fc][ut][st]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     completed already
+     [sizhe]
+
+>
+bkc_pthread
+
+functionality:
+  The posix thread functionality supplied in bkc, and this module
+  have many enhancement of the standard posix thread functions,
+  such as printing all the status of the current threads to log files,
+  or printing status of designated thread. 
+  suspend desigated thread, resume designated thread, etc.
+
+status path:
+  [ud][uc][pc][fc][ut][st]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     completed already
+     [sizhe]
+
+>
+bkc_regex
+
+functionality:
+  The regular expression functionality supplied in bkc.
+
+status path:
+  [ud][uc][pc][fc][ut]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     need to test current functionality and fully complete this module
+     [sizhe]
+
+>
+bkc_pasync
+
+functionality:
+  The asynchronous mechanism supplied in bkc, includes mutex, conditions and
+  semaphors. 
+
+status path:
+  [ud][uc]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     need to complete this module
+     [sizhe]
+
+>
+bkc_time
+
+functionality:
+  The time functionality supplied in bkc. 
+
+status path:
+  [ud][uc]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     need to complete this module
+     [sizhe]
+
+>
+bkc_timer
+
+functionality:
+  The timer functionality supplied in bkc. 
+
+status path:
+  [ud][uc]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     need to complete this module
+     [sizhe]
+
+>
+bkc_socket
+
+functionality:
+  The socket functionality supplied in bkc. 
+
+status path:
+  [ud][uc]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     need to complete this module
+     [sizhe]
+
+>
+bkc_crc
+
+functionality:
+  The check sum functionality supplied in bkc. 
+
+status path:
+  [ud][uc]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     need to complete this module
+     [sizhe]
+>
+bkc_store
+
+functionality:
+  The store functionality supplied in bkc.  Store functionality
+  is an enhancement to files that, a store can be an absolute
+  device space expressed in direct address.
+
+status path:
+  [ud][uc]
+aims and ideas:
+  1. tag
+     [sizhe]  
+claiming log:
+  1. [aim_id 1]
+     tag
+     [sizhe]
+completed report:
+  1. [aim_id 1]
+     need to complete this module
+     [sizhe]
+

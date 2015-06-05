@@ -1,0 +1,17 @@
+self-mending
+----------------
+
+>[22:21 2009-5-17]
+
+  new added:
+  [bkc_string]
+  1. add the bkc_string module
+
+>[22:21 2009-5-17\]
+
+
+
+
+more aims
+---------------
+  1. add the regular expression analysing

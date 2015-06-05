@@ -1,0 +1,12 @@
+##################################
+#compiling pre-processing 
+#
+
+#clear first for last compiling status
+if [ -f bkc_mod_need_to_clean.flag ]; then
+    rm -rf ./*.sdep;
+    rm -rf ./*.o ./*.d;
+    rm -rf ./*.a ./*ori;
+    rm -rf ./bkc_env_settings.cfg;
+    rm bkc_mod_need_to_clean.flag;
+fi

@@ -1,0 +1,245 @@
+EMPTY LICENSE                
+
+Version 1, 22 February 2010
+
+Copyright © 2010 Public Resource Foundation
+<http://groups.google.de/group/pub-res-fd>
+
+Everyone is permitted to copy and distribute verbatim copies of this 
+license document, but changing it is not allowed.
+
+
+Contents
+
+x1. Terms
+x2. Basic Principle
+x3. Non-Profit Use of The Works
+x4. Commercial Use of The Works
+x5. Warranty
+x6. Apply EMPTY LICENSE to Your Works
+
+
+
+x1. Terms
+
+"Work" means the composition which was made by an individual or a group. 
+The scope of the "work" includes but more than pragrams, and any other forms 
+of composition such as musical compositions, drawings, writings, project 
+plans are also included in it.
+
+"contributor" means both the original author of the work and all other 
+related person who make the contribution of different forms to the work.
+
+"receiver" is an individual or a group who get the work via the network 
+or other method.
+
+"commercial group" is the group of which the aims are money-making oriented, 
+and often have it's own product, or only have the capital. A commercial 
+group could even have only one person. A commercial group includes but more 
+than companies and corporations of different forms.
+
+
+
+x2. Basic Principle
+
+The works can always be gotten integrally and freely by everyone via 
+network or other methods. 'Freely' includes without any payment. 
+
+For programs, this means that the program will always be source opened, 
+and can always be gotten freely via network or other methods when needed.
+
+
+
+x3. Non-Profit Use of The Works
+
+Everyone who gets the work can use it freely at once.
+'Freely' includes without any payment and in any methods.
+
+For programs, this means that some new programs based on the received program
+need not to publish all their sources thoroughly, and you are guaranteed 
+that you really have the rights to do this. However, the following 
+section(x3.Commercial Use of The Works) can be referenced if you choose to do 
+this for commercial use.
+
+A declaration of the use of the received program is recommended as the 
+respects to the original and all other relative contributors for the received 
+program.  
+
+
+
+x4. Commercial Use of The Works
+
+There is always a simple rule:
+The commercial group must pay the real-value of the work 
+to the participants who participates in the commercial group.
+
+The participants includes employees and employers in the commercial group
+The real-value calculation is descripted separately in the following 
+part of this section.
+
+For totally reuse of the received works, the commercial group must pay the 
+real-value of the works to all the participants in itself evenly. 
+This means that every participant will get a partial value as the amount of 
+(real-value / number of all participants).
+
+For partially referencing to the received works to some extent, it is 
+guaranteed that the reference person will have the rights to estimate the 
+value of the referencing according to the total real-value of the received 
+works as the initial value, and that all other participants in the commercial
+group have the rights to vote, oppose or suggest a new reasonable estimation. 
+However, the initial value can not exceed the real-value of the received work.
+
+If an estimation encounters no opposition for a period of time, it becomes 
+the steady estimation. During the exchanging of opinions, the estimation is 
+the initial value. After a steady estimation turns up, the estimation is 
+the steady one.
+
+After all, the commercial group must also pay the estimation value of the 
+works to all the participants in itself evenly. This means that every 
+participant will get a partial value as the amount of (estimation-value / 
+number of all participants).
+
+There is always a talkpage designated by the original author for the work , 
+it can be a plain file  or an web page on the network or in any other forms.
+the real-value and value-realize-period of the work can be brought up from 
+here.
+
+The real-value calculation is as follows:
+
+Every contributor of the work will give a number of his/her lifetime spent on
+this work and another number as the estimated value(measured in money or other 
+counterpart form). the real-value of the work is dynamically increased as 
+more and more contributor joins in and reduce when each contribution has
+lasted over nature-life-span-time. 
+"nature-life-span-time" means the time span during which each contribution 
+can bring value to every one, and
+after the nature-life-span-time has passed, the work is still an open source
+to every one but these noble contribution will not contribute to the real-value
+of the work. The value of nature-life-span-time is 100 years for which the 
+current human life limit is considered.
+
+Payment period is the decided by value-realize-period declared in the 
+specific work. 
+This means that the commercial group will have to pay the real-value or 
+the estimation-value of the work to it's participants per value-realize-period. 
+During the exchanging of opinions, the value-realize-period is the initial one. 
+Value-realize-period will be brought up from the talkpage just like the 
+real-value.
+
+The determination of the value-realize-period is initially brought up by the 
+original author of the work, and it is guaranteed that everyone have the 
+rights to vote, oppose or suggest a new reasonable value-realize-period.
+
+If the work is updated, and the commercial group take the use of the new 
+version, the sum of the payment need to be updated according to the 
+responding upadated real-value or estimation-value of the work.
+
+A declaration of the use of the received works is recommended a respect to 
+the original and all other relative contributors for the received works.
+
+
+There is also an integrity assurance:
+
+If the commercial group take the commercial use of the works, but does not 
+perform responsibilities described above, it is guaranteed that everyone 
+could have the rights to reveal this deal, and also have the rights to resort
+to law or other contemporary counterpart to enforce these responsibility.
+And in these cases, everyone is guarenteed to have the rights to demand the 
+value which originally need to be paid to the participants to be doubled 
+relative to the former value per value-realize-period untill the 
+nature-life-span-time of the works has passed or the person who made this 
+demand choose to stop doing this.
+
+
+
+x5. Warranty
+
+There is two generation of the warranty system:
+
+First Generation
+
+The time span may at least lasts 20 years, 
+we can tag this time span as 2010.02.24---2030.02.24.
+
+This time span is needed that the members under the EMPTY LICENCE can 
+grow up safely, and supply everyone with more and more functions freely. 
+At the same time, an open donation pool will be built to absorb value 
+donated by everyone.
+
+During this time span, there is rich technical and relative supports 
+for the works from the original author and all other contributors. 
+The receiver will assume the risk as to the quality and performance 
+of the work, and the original author and relative contributors need not 
+to assume this risk(except the  author or the contributors make 
+a warranty for the work).
+Once a loss occurred and is affirmed, the compensation 
+to the receiver is recorded, and will be realized during the 
+second generation.
+
+In fact, the work which is open to everyone will have less defects than 
+those close ones. And the open source project GNU/linux can give us 
+the explanation to some extent. We must have a sober mind that 
+more advertising does not lead to less defects, it is the responsibility 
+and a good management method that can lead to less defects.
+
+
+Second Generation
+
+The receivers of the work can not only get rich technical and 
+relative supports for the work but also the adequate compensation for the 
+loss that occurred and is affirmed to the receiver due to the robustness 
+and thriving of the open donation pool. 
+The original author and relative contributors need not to assume the 
+risk as to the quality and performance of the work(except the author or 
+the contributors make a warranty for the work).
+
+The strong will is to initiatively and thoughtfully compensate the receiver 
+once a loss occurs, and buck-passing will always be despised.
+During this generation, the cumulated and unresolved compensation recorded in
+the first generation will be resolved thoughtfully for the corresponding 
+receivers or their relatives in some cases.
+
+This will be a vivid contrast and big bang to some of the commercial groups
+of which the first strategy to the loss of their customers is buck-passing.
+
+
+
+x6. Apply EMPTY LICENSE to Your Works
+
+To do so, attach the following declaration to a striking position of the work.
+
+The position can be a description file belongs to the work, or a description
+web page for the work or can be of other choice.
+
+For program, this declaration is recommended to attach
+to the start of the main description of the program, such
+as README of the program. 
+
+Each file of the program should have at least the 
+"Copyright Declaration" line and a pointer to where the full notice can
+be found.
+
+    Copyright Declaration
+
+    This work is an open resource, and it is distributed in the hope that
+    it will be helpful and useful.
+
+    You can use it freely to your needs under the EMPTY LICENSE.
+    There is also a clear warranty. Please see the EMPTY LICENSE 
+    for more details.
+
+    You should have received a copy of the EMPTY LICENSE along with this 
+    work. If not, see <http://groups.google.de/group/pub-res-fd>.
+
+
+
+The EMPTY LICENSE does not inherently make the relative works which the openly 
+published work was based on or will be used for be opened under EMPTY LICENSE.
+You may need to get agreements of the corresponding authors of the relatvie 
+works, or, if necessary, thoroughly rebuild the relative works openly again. 
+In any cases, you always have the right to publish your own work openly under 
+this License.
+  
+
+ 
+

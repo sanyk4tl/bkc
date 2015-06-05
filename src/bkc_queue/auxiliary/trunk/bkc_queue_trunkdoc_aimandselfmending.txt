@@ -1,0 +1,9 @@
+self-mending
+----------------
+
+>[10:28 2009-8-24]
+  new added this module
+
+
+more aims
+---------------

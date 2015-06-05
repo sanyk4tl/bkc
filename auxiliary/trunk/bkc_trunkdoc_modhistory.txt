@@ -1,0 +1,83 @@
+bkc modification history
+========================
+
+>>>
+version:
+    v1.0.0
+time:
+    Thursday, April 16, 2009 (090416) at 12:45:07 AM UTC/GMT +8 hours
+location:
+    ChongQing, China on Earth
+    latitude: 29.3 North, longtitude: 106.35 East
+    international country code: + 86 (China)
+    area code: 23
+weather:
+    clear, mild
+    temperature: 70 F (comfort level is 70 F)
+    wind: 3 mph from 190 south by west
+ 
+pgr_id: sizhe(email:tancng#gmail.com)
+ 
+description: created, add the bkc_dlist module
+ 
+>>>
+version:
+    v1.0.0
+time:
+    Monday, May 4, 2009 (090504) at 1:10:27 AM UTC/GMT +8 hours
+location:
+    Beijing, China on Earth
+    latitude: 39.55 North, longtitude: 116.23 East
+    international country code: + 86 (China)
+    area code: 10
+weather:
+    clear, mild
+    temperature: 63 F (comfort level is 63 F)
+    wind: 3 mph from 120 southeast by east
+ 
+pgr_id: sizhe(email:tancng#gmail.com)
+ 
+description: updating
+ 
+>>>
+version:
+    v1.0.1
+time:
+    Monday, May 18, 2009 at 12:35:01 AM UTC/GMT +8 hours
+location:
+    Beijing, China on Earth
+    latitude: 39.55 North, longtitude: 116.23 East
+    international country code: + 86 (China)
+    area code: 10
+weather:
+    clear, mild
+    temperature: 82 F (comfort level is 81 F)
+    wind: 1 mph from 0 north
+ 
+pgr_id: sizhe(email:tancng#gmail.com)
+ 
+description: created, add the bkc_string module
+ 
+>>>
+version:
+    v1.1.7
+time:
+    Saturday, 27 February 2010, 16:54:57
+    Monday, May 18, 2009 at 12:35:01 PM UTC/GMT +8 hours
+location:
+    Beijing, China on Earth
+    latitude: 39.55 North, longtitude: 116.23 East
+    international country code: + 86 (China)
+    area code: 10
+weather:
+    ice fog, chilly
+    temperature: 0 C (comfort level -3 C)
+    wind: 9 km/h from 140 southeast
+ 
+pgr_id: sizhe(email:tancng#gmail.com)
+ 
+description: 
+    update building architecture and all the makefiles in 
+    subsidiary modules in bkc, including bkc_dlist bkc_pasync 
+    bkc_queue bkc_socket bkc_store bkc_time bkc_crc bkc_libc 
+    bkc_pthread bkc_regex bkc_stack bkc_string bkc_timer bkc_sandbox.

@@ -1,0 +1,241 @@
+>[recording happily]
+
+
+>这个是将要实现的find函数的声明，考虑好了再去实现
+
+/*************************************************************************
+ *                  bkc_string_find
+ *************************************************************************
+ * parameters:
+ *     str_p: points to the string which the pattern text designated by
+ *           pat_p will be searched in
+ *     pat_p: the designated pattern text
+ * return value:
+ *     Not NULL: points to the successfully matched string
+ *     NULL: abnormal return
+ * description:
+ *     this func will find the required string designated by pat_p
+ *     in str_p.
+ *
+ *     fantastic capability of this func is that:
+ *     pat_p can be the regular expression as
+ *
+ *     the descriptive characters: 
+ *         . * + = < > ( ) { } [ ] ~ ` ! @ # $ % ^ 
+ *         & * - ; : ' " , / ? \ 
+ *         1 2 3 4 5 6 7 8 9 0 _
+ *         a b c d e f g h i j k l m n o p q r s t u v w
+ *         x y z (white space)
+ *
+ *     text characters: 
+ *         1 2 3 4 5 6 7 8 9 0 _
+ *         a b c d e f g h i j k l m n o p q r s t u v w
+ *         x y z (white space)
+ *         \. \* \+ \= \< \> \( \) \{ \} \[ \] \~ \` \! 
+ *         \@ \# \$ \% \^ \& \* \- \; \: \' \" \, \/ \? \\
+ *     control characters: 
+ *         . * + = < > ( ) { } [ ] ~ ` ! @ # $ % ^ & * - 
+ *         ; : ' " , / ? \ \n \t \v
+ *
+ *     the pattern designated by pat_p will be composed by text chars 
+ *     and control chars
+ *     descriptive characters are all the chars that can be used to 
+ *     make up text characters and control characters
+ *****************************  Notes  *****************************
+ ************************************************************************/
+bkc_string_t *bkc_string_find(bkc_string_t *str_p, char *pat_p);
+
+这个函数，如果需要持续搜索， 也许需要一个find记录， 这个记录
+只有destroy函数，没有create，用户也不需要关心，其作用就是记录
+上次搜索环境，下次接着搜索.
+如果用户不需要进行这种连续的持续搜索，可以设置为空.
+这只是一个技巧，避免多线程互斥机制的技巧。
+
+>expstore需要看看
+
+>接下来需要做的就是把正则表达式给完成咯。
+ 其他一些trick可以留到以后来实现。
+ getstring等其他函数也是需要很好地实现地。
+ 
+
+>需要测试一下：
+ bkc_string_trimleft
+ bkc_string_trimright
+ bkc_string_trimlen的准确性。
+ 还要加入去除充分space的trim
+
+>注意，以后BKC_STRNCAT中，要处理NULL这种情况，
+ 这一层函数都要这么处理。c语言中恰好缺的就是这个处理。
+
+
+>[21:45 2009-5-12]
+>继续要干的事情
+测试
+static int bkc_string_expstore(bkc_string_t *str_p, unsigned int newlen);
+static int bkc_string_trcont(bkc_string_t *str_p, unsigned int newlen);
+static char *bkc_string_dupint(int count);
+
+完成
+bkc_string_t *bkc_string_cat(bkc_string_t *dstr_p, bkc_string_t *sstr_p,
+        char *stext_p, int *sint_p);
+
+>[21:45 2009-5-12]
+
+
+>[14:16 2009-5-11 ]
+>bkc中string需要的操作为：
+ 1. cat(string, string*, char *, int *);
+ 2. dup("string");
+ 3. cpy(string, string);
+ 4. create();
+ 5. destroy();
+ 6. char *getcontent(string);
+ 7  cmp(string, string, mode = 是否忽略空格/或逐字比较);
+ 8. string *getmatchedstr(string, char *patternstr="style=xxx:pattern", 
+	int beginposition, int *nextposition);
+
+ 9. isepystr(string, "空串的符号");
+ 10. clear(string *)/*清理整个串，全部清为空， 其长度会为零，但物理不会为零*/
+
+ 11. getlen
+
+ 12. changecontent(string *) 重志其内容。
+------------------------------
+
+
+>
+ 以后要写一个正常的和非正常的编程风格导致的程序的长度的讨论。
+ 
+>你的中间件要放到st平台上去编译，才好用。也能说明其可执行性。
+
+>spf中要加入内部dup的版本，目的是调试的时候，所有的内存都从imalloc中分配。
+bkc_string_spf_istrdup， 这个有待完成。是一个很好的建议。[已ok]
+
+>改天把对string的操作宏加入模板， 这将更加有效。
+
+>bkc中string需要的操作：
+ 1. cat(string, string*, char *, int *);
+ 2. dup("string");
+ 3. cpy(string, string);
+ 4. create();
+ 5. destroy();
+ 6. char *getcontent(string);
+ 7  cmp(string, string, mode = 是否忽略空格/或逐字比较);
+ 8. getmatchedstr(string, char *patternstr, mode=head, conti);
+ 9. isepystr(string, "空串的符号");
+
+
+>bkc string中以后还需要做的工作。
+ 完成sprintf的功能，预计这个功能要等到正则表达式完成时可做。
+ 先选择用下层的c语言来实现。
+
+
+
+>杂记
+ 条件运算符?的返回值问题。
+
+6.5.15 Conditional operator
+
+Syntax
+1 conditional-expression:
+logical-OR-expression
+logical-OR-expression ? expression : conditional-expression
+Constraints
+
+2 The first operand shall have scalar type.
+
+3 One of the following shall hold for the second and third operands:
+— both operands have arithmetic type;
+— both operands have the same structure or union type;
+— both operands have void type;
+— both operands are pointers to qualified or unqualified versions of compatible types;
+— one operand is a pointer and the other is a null pointer constant; or
+— one operand is a pointer to an object or incomplete type and the other is a pointer to a
+qualified or unqualified version of void.
+Semantics
+
+4 The first operand is evaluated; there is a sequence point after its evaluation. The second
+operand is evaluated only if the first compares unequal to 0; the third operand is evaluated
+only if the first compares equal to 0; the result is the value of the second or third operand
+(whichever is evaluated), converted to the type described below.92) If an attempt is made
+to modify the result of a conditional operator or to access it after the next sequence point,
+the behavior is undefined.
+
+5 If both the second and third operands have arithmetic type, the result type that would be
+determined by the usual arithmetic conversions, were they applied to those two operands,
+is the type of the result. If both the operands have structure or union type, the result has
+that type. If both operands have void type, the result has void type.
+
+6 If both the second and third operands are pointers or one is a null pointer constant and the
+other is a pointer, the result type is a pointer to a type qualified with all the type qualifiers
+of the types pointed-to by both operands. Furthermore, if both operands are pointers to
+compatible types or to differently qualified versions of compatible types, the result type is
+a pointer to an appropriately qualified version of the composite type; if one operand is a
+null pointer constant, the result has the type of the other operand; otherwise, one operand
+is a pointer to void or a qualified version of void, in which case the result type is a
+pointer to an appropriately qualified version of void.
+
+7 EXAMPLE The common type that results when the second and third operands are pointers is determined
+in two independent stages. The appropriate qualifiers, for example, do not depend on whether the two
+pointers have compatible types.
+
+8 Given the declarations
+const void *c_vp;
+void *vp;
+const int *c_ip;
+volatile int *v_ip;
+int *ip;
+const char *c_cp;
+the third column in the following table is the common type that is the result of a conditional expression in
+which the first two columns are the second and third operands (in either order):
+c_vp c_ip const void *
+v_ip 0 volatile int *
+c_ip v_ip const volatile int *
+vp c_cp const void *
+ip c_ip const int *
+vp ip void *
+
+92) A conditional expression does not yield an lvalue.
+
+
+
+
+>[recording happily \]
+------------------------------
+
+
+>[临时笔记本]
+>知道这个错误是由什么造成的吗？很简单，确需要编代码时小心才能做到。
+把一个不是字符串的指针当成字符串指针，从而对其内容进行赋值。
+[file:/home/tsz/bkc/src/bkc_string/src/bkc_string.c][line396](free position info)
+段错误
+
+
+
+
+>[临时笔记本]
+-------------------------------
+
+
+
+>[计划可做的事list]
+>给自己写一个工具（shell），这样可以快速从一个模板
+ 实现为一个模块， 只要用户指定模块名字就行。
+
+>写一个函数输入字符串的通用解析模块，这样可以很容易地配置
+ 函数的参数， 尤其是函数的参数比较多的时候。
+ 并给出这个参数的调试打印。
+
+>#define BKC_STRING_SPF_RETURN(ret) 这个宏之中需要试试
+ 如果传入空的参数会怎么样，因为有的函数return 无参数
+
+>[计划可做的事list\]
+--------------------------------
+
+
+>[观点杂记]
+>做任何的新的实验性的修改，其实应该先只改变某个小的点， 实验，才推广出去，
+ 这样才是安全的。
+
+>[观点杂记\]
+--------------------------------

@@ -1,0 +1,381 @@
+>[recording happily]
+
+
+>[9:53 2009-5-18]
+1. 添加相应的版本信息
+>[9:53 2009-5-18\]
+
+
+
+>[2009-5-5]
+
+
+>bkc 的模板文档可以看看，完善一下
+>可以在bkc.h中添加目前已有的模块记录，
+>有时间时给每个设计文档添加一个log信息。
+
+
+
+
+
+>[2009-5-5 \]
+
+
+
+>[15:08 2009-5-4]
+发现也许可以把上层库做成依赖下层库的方式来改写makefile的更新方式，
+这样就解决了重复拷贝的问题，
+
+但还有一个循环控制的问题， 这得要看shell并和makefile结合起来看。
+>[15:08 2009-5-4]
+
+
+
+>[19:38 2009-6-9]
+今天把bkc_string的模块划分调整了一下，使得可以为一个模块添加伙伴模块，
+对其进行补充
+
+>[19:38 2009-6-9\]
+#############################
+
+
+
+
+
+
+
+
+
+>[11:16 2009-5-1]
+
+
+>[ntd]
+  对于 #define 或者 #ifdef 后是否可以继续使用 #define 这种东西需要看看。
+
+  #define BKC_DLIST_T_DEFINE #ifdef abcdddd printf("node\n");\n #else printf("no node\n"); #endif 
+  
+  这样是不行的， 叫做程序中有游离的 ‘#’
+
+>对于条件?: 后执行的语句是否可以是多条， 需要看看那
+
+  1 ? (printf("first\n"), printf("second\n"), printf("third\n")) : (printf("four\n"));
+
+  这样是可以的。
+  空洞
+
+
+
+>[用户给错了操作code， 想想会怎么处理？]
+ 应该是：如果相应关注的值为空就提示用户该值为空， 并返回操作失败。
+ 对的， 这也是把create和destroy单独出来的原因， 否则还要内部设置一个状态说此模块
+ 已经初始化了
+
+
+>[11:16 2009-5-1 \]
+##########################
+
+>[15:53 2009-5-2]
+>以后一些常用的宏可以直接加入spf.c模块
+ 是否要考虑添加一个独立的演示模块， 为新的模块的添加打好基础。
+
+>[15:53 2009-5-2 \]
+#########################
+
+
+
+
+
+
+
+
+
+
+
+>[recording happily \]
+------------------------------
+
+
+>[临时笔记本]
+>bkc目前的测试状态为:
+ 只在st平台编译, 并没有运行过, 过些日子就可以正式地运行了.
+
+
+>发现有以下一个命令也许有用：
+$(LD) ...   --start-group libname1 libname2 libnamen --end-group ...
+ 可以同时连接几个库。
+
+
+>
+OBJ=
+for i in lib1.a lib2.a lib3.a
+do
+        ar x $i
+        OBJ=$OBJ `ar t $i`
+done
+ar rcs libtest.a $OBJ
+rm -f $OBJ
+
+
+>
+ar -t libtest.a | ar -x libtest.a
+ar -rcs *.o
+
+>
+find_files = $(wildcard $(dir)/*)
+     dirs := a b c d
+     files := $(foreach dir,$(dirs),$(find_files))
+
+
+>make 的策略
+ 1. 把可以变成库的东西写好，
+ 2. 一个一个去改， 直到完全写完。
+
+
+>找到一个makefile的书写错误， 发现， 要干成一件事情， 还是要
+ 一步一步来，前一步的成功是后一步的基石， 注意进度。
+ 很多时是可以回过头来完成的。
+>还是发现了一个步骤的文件夹编写错误，这真的是致命的，恩，记住，
+ makefile的写法， 不容忽视。
+
+>今天明白了另一个道理：要在探索中加以学习。
+
+
+>注意makefile的一个约定： $(tlmname)_test*.c为测试文件名
+ tlmname为模块名字+ test +其他的测试主题，
+ 现在的约定为只存在一个这样的文件， 并且，其他的原代码都是为
+ 这个文件服务的。
+
+以后可以递增循环来测试这些个
+ 的文件。为每一个这样的文件生成一个可执行程序
+
+>现在考虑要删除哪些文件
+ 本模块的.o, 本模块的.d, 从下层拷贝过来的.a, 以及揭开的.o,
+ 然后删除本模块的.a
+
+>注意有一个下层lib不存在时，需要更新的要求， 少后再看
+
+>注意一个文件夹层次的含义：
+ include:
+ lib:
+ out:
+ test:
+ 都是指从本功能之外来看本功能。
+ 只有src 代表我们提供功能的主体.
+
+ out:指以可执行程序向外提供的服务
+ lib；指以库的形式向外提供的服务
+ test:指从外部来测试本模块，方法可以多样
+ include:配合lib 以头文件形式提供的服务
+
+ 一个模块和其头文件其实可以这样看：模块源文件，模块头文件。
+ 这就和.c对应上了。
+
+>每一个人都可以从提供服务的角度来思考
+
+>需要以后看看是否可以在shell中换行
+>注意没有人用的包要放到沙河中。
+>内外考虑看来是很有用的一件事。
+
+>现在要做的工作为：
+ 1.把下层的包考备过来，揭开，并打成一个大的lib, [ok]
+
+   注意打成大包的策略为：把考过来的包解开，打包，然后把删除下层的包/
+   考虑如下：
+   本层的最新与否由.c,.h来决定， 下层的.lib是否是最新的呢？只能通过如下条件来保证：
+   由下层控制/lib下总是最新的（make 决定），上层每次都从下层拷贝自然就是最新的，
+   本次用完后就删除，然后删除（触发下次下层有机会提供最新的包）
+
+   相当把功能转移了。每次得到都是下层最新的能就通过这点来实现。
+
+   我们认为当前下.o是不用删除的，因为这充分表明了当前lib的所有内容并且里面的.o是已经
+   分级别的了：
+   对于本层的.o由.c,.h控制
+   对于下层来的.o 不会有任何的影响(没有人依赖他，所以其更新不在本层完成，但总有机智保证他是最新的)，
+   完全由下层考背上来的lib来控制更新，而那个lib有机智控制永远都会是最新的
+   所以可以这么说。所有的.o都是当前最新的， 并且可控制的.
+
+   着充分说明了可控性。
+
+   原则2：我要用的时候，一定要保证是最新的，推后解释策略。这就叫厚积而拨发一例。
+
+ 2.把打印和格式调整好[ok]
+ 3.统一上下层的makefile,看是否依然可以在上层编译，依然可以在下层编译，并在上层打好包。
+   看看下层是否可以正常调用
+   用nm -s 或 ar -t 来查看上层打好的包
+
+   做的修改为：
+
+
+
+1. 
+#module pushed flag
+#pushedmode = no_pub designating that this module is not pushed out yet, 
+#    and is still on developing. the head files which will be published 
+#    later will be put in the include dir, head files only used innerly 
+#    in the module will put in the modtpt/src in modtpt/include.
+#pushedmode = pub_out 
+#pushedmode = pub_inn 
+#    designating that developing is completed and this module is 
+#    pushed out.
+#    head files which need to be published (originall in modtpt/include)
+#    will be put in the topper level dirs
+#    this will have two positions(promising xxx module will 
+#    contain the modtpt)
+#
+#    pushedmode = pub_inn
+#    1. xxx/src/include_modtpt
+#       this position means modtpt is only pushed out for the inner 
+#       using in xxx module
+#    pushedmode = pub_out
+#    2. xxx/include
+#       this position means modtpt is pushed out for outter using 
+#       in xxx module
+#
+#at the beginning of creating a module, ispushedmodule  could be set as
+#pushedmode = no_pub. once upon being finished,
+#pushedmode  can be set to pub_out or pub_inn, and the head files in 
+#modtpt can moved to the right dir
+#in the topper module.
+pushedmode = no_pub
+tlmname := module_name(must be module name)
+tllname := libmodule_name.a (must be the module lib name)
+
+2.
+if have no sublib then set
+slmname_submodule = # 
+sllname_submodule = #
+
+if have sublibs, the sublibs must be listed here.
+slmname_submodule = sublib_modulename 
+sllname_submodule = sublib_libname
+
+3.
+if have no sublib then set
+	@echo "------------->[unarchiving sublib]["$(sllname_bkc_dlist)"]-------"
+	@echo "need no sublib unarchiving"
+	@echo "<-----------[unarchiving sublib ok]["$(sllname_bkc_dlist)"]------"
+else must set as 
+	@echo "------------->[unarchiving sublib]["$(sllname_bkc_dlist)"]-------"
+	$(AR) -x $(sllname_sublib_libname)(here must be the sublib name)
+	@echo "<------------[unarchiving sublib ok]["$(sllname_bkc_dlist)"]-----"
+
+more information can be referred in bkc\src\bkc_dlist\build\Makefile
+
+
+
+
+   (1。tlmname 改为模块名
+   (2。 子模块列表该为子模块的名字， 如果没有，可用下面的语句置空。
+slmname_bkc_dlist = # 
+sllname_bkc_dlist = #
+   (3。以下这段可以不要，要的话要逐个模块去添加
+#make every sublibs and cp lib to top libdir
+$(slmname_submodule): 
+	${MAKE} -C $(slbuilddir_submodule) all
+	$(CP) $(sllibdir_submodule)/$(sllname_submodule)  $(tlbuilddir)   
+   (4$(tllname) : $(tlobjectfiles) $(slmname_submodule) 后面的依赖可以去掉，
+      其实不去掉也没有关系，反正为空， 注意如果要的话， 要把所有的模块都 
+      添上。与3对应。
+
+   （5 山区	$(AR) -x $(sllname_bkc_dlist)的接包， 因为没有子包了，其实可以选择
+     忽略这个错误。现在的做法是：
+	@echo "need no sublib unarchiving"
+    这里考虑是否可以做一个假的module,这样的话只需要拷贝，然后修改名字就行，
+    恩，但着并没有解决这个问题： 没有子包的时候选另一个分之， 
+    所以make中的条件执行需要好好把握以下， 因该有不通过shell的方法。只是缺少发掘。恩，发掘。
+
+ 4。修改和下层makefile的全局include, 添加上层的include文件，[ok]
+    把头文件挪到上层来， 编译，这样下层和上层因该都可以编译通过并且，上层的test中就可以进行
+    相关头文件的测试了。
+    这个目标应该可以通过层次的架构来实现。假设上层的include文件夹存在的方法
+
+    注意有一个头层不需要包含的问题，这可以理解， 低归使其必然。
+    可以用变量加以区别，当一个包作为最顶层时，include 文件夹不需要包含上一层的目录，因为
+    做为lib其顶层是未知的， 所以，不提供出去意味着每人用，所以最顶曾也就是内喊的一个概念。
+
+    向上提供，表示有人将会用到这个包，所以要提供。
+    
+
+ 5.测试一下上面这个模块， 做一个通用的目标摸版出来
+
+ 5.1 需要把上层的格式复制到下层，感觉上层漂亮些，哈哈。[ok]
+
+ 3
+ 
+
+> 以后要做的：软件要分层次：src文件夹下：
+  一个软件包被发布的层次如下：
+
+  module
+    include(submodule.h被发布为上层软件外部部使用)
+    src
+      includesubmodule(submodule.h被发布为上层软件内部使用)
+      src.c
+      submodule
+         include(这个准备向外提供发布文件的地方，可以理解为未发布的地方，还是模块内部的共享区域)
+         src...
+
+    所以submodule有两个放发布头文件的地方:
+    src/includesubmodule
+    module/inlclude/
+
+
+
+>[临时笔记本]
+-------------------------------
+
+
+>[要做的事list]
+
+>添加函数指针与数据指针是一样的声明, 这个声明很重要.
+ 算是对c语言的一个期待.
+
+>强调assert宏是可以去掉的, 而其他的两个宏是不能去掉的,
+ 因为那是程序的正常的流程.
+
+>
+ fpbox这个机制还没哟完全测试, 其实这个机制没有用到, 或者只是小范围内的一个补充机制,
+ 只对malloc和free出来的指针有用, 不如用catch,try机制来保证.
+
+>试试st平台是否支持print的va_args的做法, 这个以后再说.
+
+>试试如果一个type 被定义成tag, 是否能用正常的sizeof()来得到其大小
+
+
+>
+1. ar 的文件格式也许需要看看。
+   看上去很有用
+
+>
+  shell 需要一个开发编辑软件， 否则注释老不好写。
+
+
+>[22:16 2009-5-17]
+模板文件需要根据string来更新
+>[22:17 2009-5-17]
+
+
+>bkc.h中最后的log中版本命名不统一。
+
+>[要做的事list\]
+--------------------------------
+
+
+>[观点杂记]
+
+>dlist可以做成一个命令解释器
+>dlist可以做成一个状态跳转机器
+>用户可以直接得到第一项, 下一项操作, 在指定指针前面或者后面来插入.
+>dlist工程的主线文档由以下几个组成
+   main_points(主旨, 怎么用)
+   模块的测试进度
+   文档沙河
+       注意事项,
+       如何保持头脑清醒
+       如何去发现
+       测试方法, 架构测试方法
+       本工程来来由历史, 源头性故事.
+
+>
+>[观点杂记\]
+--------------------------------

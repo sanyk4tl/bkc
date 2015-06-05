@@ -1,0 +1,11 @@
+>[支持模块替换列表]
+  由于添加了新的支持模块, 原来的模块也许可以用上这个比较方便的设施.
+  以下是仍旧没有使用这个设施的模块:
+ bkc_dlist
+ bkc_string
+ bkc_btree
+ bkc_stack
+ bkc_queue
+ bkc_libc
+
+>[支持模块替换列表\]

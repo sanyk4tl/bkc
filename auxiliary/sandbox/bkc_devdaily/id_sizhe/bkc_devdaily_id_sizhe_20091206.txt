@@ -1,0 +1,2413 @@
+>[meta info]
+>
+content_list:
+[recording happily]
+[要做的事list]
+[relative and hints]
+[版本更新recording]
+[临时笔记本]
+[观点杂记]
+
+>[############################meta info\]
+
+
+
+>[recording happily]
+
+>[tiny unit]
+
+
+>
+时间段:20100110
+模块们:整体模块整理和删除
+
+>
+>>
+20100227
+>>
+[ud][uc][pc][fc][ut][st][ma]
+[under designing modules][under completing modules][primitively completed]
+[fully completed][under testing][steady][mature]
+
+>
+>>
+20100226
+>>
+module_info.txt需要完善.
+>>
+http://www.timeanddate.com
+>>
+ *  x1. preface doc:
+ *    auxiliary/trunk/bkc_trunkdoc_preface.jpg
+ *
+ *    this is the big gate of bkc, everything about bkc
+ *    can be found from here.
+ *
+ *  x2. buglist doc:
+ *    auxiliary/trunk/bkc_trunkdoc_buglist.txt
+ *    this is a summary of all bugs in every module.
+ *
+ *  x3. designment doc:
+ *    auxiliary/trunk/bkc_trunkdoc_designment.jpg
+ *    this is the original designment of bkc.
+ *
+ *  x4. selfmending doc:
+ *    bkc_trunkdoc_aimandselfmending.txt
+ *    this is the selfmending and updating log of bkc. more aims
+这几个文档需要看看.
+
+>>
+ *  bkc/auxiliary/sandbox/bkc_multicubebkc_modules_info.txt
+这个文档需要进行整理
+
+>>
+bkc.h 这个文件中的包含需要增添和修改
+
+>>
+how to build and use bkc:
+how to add a module in bkc:
+需要单独进行描述
+
+>>
+注意添加官方的网络地址信息
+
+>
+>>
+20100222
+>>
+整理头文件和文档ing...
+
+>
+>>
+20100208
+>>
+ok, 今天改造bkc_pthread, 使得其变成受控线程, 这可以避免如下一个问题
+. 底层线程自然退出, 上层没有方便的方式得到通知(有方法, 但应避免对这些
+   底层比较依赖的操作)
+
+>>
+void *threadfunc(void *parm)
+{
+  printf("Entered secondary thread\n");
+  pthread_cleanup_push(cleanupHandler, NULL);
+  while (1) {
+    pthread_testcancel();
+    sleep(1);
+  }
+  pthread_cleanup_pop(0);
+  return NULL;
+}
+
+>>
+    bkc_dlist_definit_op(&op);
+    op.opcode = BKC_DLIST_OPCODE_FIND_NEXT_NODE;
+    op.tunode_p = fnode_p;
+    bkc_dlist_operate(dlist_p, &op);
+    fnode_p = op.runode_p;
+
+>>
+ is_need_dsy 这种机制可以参考去掉: 这时候用户如果add了就
+bkc_pthread_node_destroy_func（）
+这个函数经过了多少思考才决定不需要进行空删除呀,
+1先创建子线程, 2成功再加入list中,
+ 加入不成功应该进行删除此线程操作, 此时线程状态可能已经
+变化, 所以删除的时候要判断其实时的状态, 而不是创建时候
+的运行状态.恩, 实时判断, 共享变量, 其实这应该是一个variable
+类型的值.这样才安全(对此值的更改马上生效于内存中, 调用者不会使用
+缓存中的值(cache中的值), 也不会预取)
+
+对于这种严格的要求, 我们要看如果状态不一致的后果, 从而添加相应机制, 
+最严格的是增加硬件测试机制，把要判断的东西放置在其中, 并使用
+相应的硬件指令来测试如testandset. 
+
+真正的解决方法, 只有在合适的时候才会出现, 不必强求.做好记录.
+注意, 对于这种情况, 我们的策略是告诉用户所发生的一切(出错提示).
+
+对错误的遇见: 
+1/ 当整个pthread模块退出(uninit时, 如果有还没有
+结束的线程, 模块会去结束, 但在结束的过程中, 此线程自动又结束了, 
+此时会有冲突提示, 问题属于以下类型, 但不大, 可以接受)
+2. 自动清理时不会有这种问题, 因为之清理destory线程.
+
+[Q]
+看到问题类别, 在后面的遇到中不断思考:
+1. 在handler中对外部数据的更新, 如何使用锁机制
+2. 涉及到协作就涉及到保护
+
+>>
+#0  0x0804a16b in bkc_pthread_node_destroy_func (pthr_node_p=0x971e0d0, param_p=0x0)
+    at /home/sanyk/hut/project/bkc/src/bkc_pthread/src/bkc_pthread.c:601
+601	        clue = *((int *)(param_p));
+(gdb) bt
+#0  0x0804a16b in bkc_pthread_node_destroy_func (pthr_node_p=0x971e0d0, param_p=0x0)
+    at /home/sanyk/hut/project/bkc/src/bkc_pthread/src/bkc_pthread.c:601
+#1  0x08050a86 in bkc_dlist_rlsdn (dnode_p=0x971e1b0, dsymode=BKC_DLIST_DM_DELUSERDATA, 
+    unode_destroy=0x804a0af <bkc_pthread_node_destroy_func>, param_p=0x0)
+    at /home/sanyk/hut/project/bkc/src/bkc_dlist/src/bkc_dlist.c:722
+#2  0x0804ff0c in bkc_dlist_uninitmb (dlist_p=0x971e010, op_p=0xbffcbae4)
+    at /home/sanyk/hut/project/bkc/src/bkc_dlist/src/bkc_dlist.c:421
+#3  0x08050155 in bkc_dlist_destroy (dlist_p=0x971e010, op_p=0xbffcbae4)
+    at /home/sanyk/hut/project/bkc/src/bkc_dlist/src/bkc_dlist.c:492
+#4  0x0804bab8 in bkc_pthread_mod_uninit () at /home/sanyk/hut/project/bkc/src/bkc_pthread/src/bkc_pthread.c:1058
+#5  0x0804902b in bkc_pthread_t_cpdp ()
+#6  0x080490a7 in main ()
+
+注意: 对任意地址的随机读取也可能导致down机.
+尤其是对于 param_p=0x0
+
+[lk | td]
+在多线程环境下, 有变量共享这一个主题需要看看.
+ 
+>>
+[lk | td]
+
+make test的机制需要看看 
+
+>>
+线程的handler中能否使用锁, 我们要看看, 应该有一种方法去使用才好.
+
+>>
+[td | lk]
+要注意以下push hander中是否可以调用time等c库中的函数
+
+>>
+当要对特定的结构的操作进行管理的时候, 我们必须要知道两件事情
+1. 原结构信息一般信息不足, 必须新添一些管理设施, 很多情况下无法避免
+2. 设施选择有很多, 适用简洁.
+   比如要对一个结构不重复不同时进行某种操作
+   可选择状态标志+异步保护状态标志.
+
+>>
+[td]
+pthread 的状态变迁图之后可以加上, 有助于理解.
+
+>>
+    /*invalid status*/
+    BKC_PTHREAD_STATUS_EMPTY,
+    /*paused */
+    BKC_PTHREAD_STATUS_PAUSED,
+    /*being canceling*/
+    BKC_PTHREAD_STATUS_CANCELING,
+    /*be canceled*/
+    BKC_PTHREAD_STATUS_CANCELED,
+    /*being exiting*/
+    BKC_PTHREAD_STATUS_EXITING,
+    /*be exited*/
+    BKC_PTHREAD_STATUS_EXITED,
+    /*active status*/
+    BKC_PTHREAD_STATUS_ACTIVE,
+    /*active status max limit, only used as
+      a safeguard for the enum bkc_pthread_status_m*/
+    BKC_PTHREAD_STATUS_MLIMIT
+
+
+
+>
+
+>>
+[lk]
+make[1]:entering /home/sanyk/hut/project/bkc/src/bkc_timer/build
+/bin/sh: 1: not found
+make[1]:leaving /home/sanyk/hut/project/bkc/src/bkc_timer/build
+注意这个错误, 是由于在bash中使用了make 的shell语句， 注意
+make中的bash语句.
+
+
+>>
+[td]
+echo 等系统工具有必要考虑规划一下
+比如放到configure中, 其实这也是正途, 不过我们把他独立成了一个特殊的模块.从configure
+中独立开来了, 这样更清晰一点, 有好处.
+
+>>
+./configure 要看一下, configure应该自身知道自己的存在, 恩,等下用当前文件来判断.
+
+>>
+20100131
+
+>>
+./gdg_cp_mf.sh ENV_BKC_MK_MODNAME=bkc_dlist ENV_BKC_MK_SUBMOD_LIST=# ENV_BKC_MK_NBMOD_LIST=# ENV_BKC_MK_MOD_LOCATION=bkc_mk_location_embeded ENV_BKC_MK_EP=BKC_MK_MOD_TOPDIR/../../include ENV_BKC_MK_SP=BKC_MK_MOD_TOPDIR/../../build ENV_CPMF_MK_DESTPATH=BKC_TOPDIR/src/bkc_dlist/build
+
+>>
+[lk]
+这个要使劲记住:
+sed "s/BKC_TOPDIR/$cmpf_bkc_topdir/g"
+如果 cmpf_bkc_topdir中有/则会被替换得面目全非, ok
+这时用' '作为分隔符号
+错误提示基本为
+sed：-e 表达式 #5，字符 52：“s”的未知选项
+
+>>
+[lk]
+t_func’的实参太少
+/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/test/bkc_dlist_test.c: 在函数‘bkc_dlist_t_cdfht’中:
+/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/test/bkc_dlist_test.c:1086: 错误： 提供给函数‘bkc_dlist_t_unode_prt_func’的实参太少
+/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/test/bkc_dlist_test.c: 在函数‘bkc_dlist_t_cdfpn’中:
+/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/test/bkc_dlist_test.c:1165: 错误： 提供给函数‘bkc_dlist_t_unode_prt_func’的实参太少
+
+dlist 中现有这个错误, 需要看看
+
+>>
+[tag]
+注意shell 脚本中sed的管道前后不能有空格
+
+>>
+cp steps:
+a1. back up the original makfiles configures
+    首先只实现直接拷贝, 备份原来的为ori, 并且清除备份两个功能
+    后续实现增量备份和所有备份清除
+
+a2. cp res mk cfg to cur dir
+a3. modify the mk cfg according input
+a4. cp cur version to des dir
+
+>>
+[tk | lk]
+对于工程管理的附属工具应该放到哪里倒需要考虑一下:
+a1. build/gadgets下
+a2. bkc/gadgets下
+a3. auxiliary/sandbox/bkc_multidocs下
+目前选择a1. 原因为: 管理工具基本都是辅助本工程编译的.
+可以想象, 如果以后更强悍的工具加入的位置, 比如源码质量
+监管工具,  统计分析工具(有的甚至就是源码级别的工具)，
+所以位置还是选择a3比较好.
+等下转移目录,
+注意脚本中位置处理部分的独立性, 有利于模块的迁移.
+
+>>
+[lk]
+等下看看如何把参数处理的sh写成一个tplt函数
+
+>>
+[lk]
+路径的处理等下来做(相对路径与绝对路径的处理)
+
+>>
+[lk | td]
+脚本信息的分段描述, 可以考虑, 信息表达有简洁层次
+very fantastic.
+
+>
+>>
+20100126
+>>
+[lk]
+发现make 后的tab补全很有意思, 子文件夹居然也是一个选项.
+
+>
+>>
+20100125
+>>
+[Q]
+等下看看makefile规则之间是否需要空格
+>>
+打印还是不加的好, 想想怎么加.
+
+>>
+[lk]
+有两个临时阶段的目标:
+1. 完善make slight的轻量编译
+2. 完善make的全局检测方式
+2.1. 完善configure 机制
+3. 我好要提供replace_makefile的功能(/build/gadgets下并且有utils_claw):
+      replace指定模块(模块, 目录, 操作(或恢复))的makefile， 通过configure来操作.
+      目前就是要实现替换, 回退的工作后续再做.
+4. 完善模块制造工具(要放到/build/toolkit下并且有utils_claw引擎)
+5. 编写makefile 的流程文档
+6. 对pthread 模块进行适量测试(这个可以推后到星期六或者星期天)
+7. 编写整个工程的主文档, 整理各个模块的文档
+8. 上传source forge
+9. 更新我的页面is-programmer
+
+
+>>
+[lk | td]
+[ok, 已经完善]
+ENV_BKC_MK_EP=BKC_MK_TOPDIR/include
+在makefile 中的处理还没有添加完善.
+要去添加完善
+
+>>
+[Q]
+sanyk@matrix:/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/build$ make
+make: *** 没有规则可以创建“libbkc_mk_vnbmod_bkc_dlist.a”需要的目标“/home/sanyk/hut/project/bkc/src/bkc_dlist/out/libbkc_dlist.a”。 停止。
+中间发生过这样的情形需要记住
+[Q | to]
+make[1]: 正在进入目录 `/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/build'
+make[1]:正在离开目录 `/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/build'
+make[1]: 正在进入目录 `/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/build'
+[compiling bkc_store.c]
+gcc  -I.  -I/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/include  -I/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/src/inn_inc -g -w -c /media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/src/bkc_store.c -o bkc_store.o
+
+[compiling bkc_store_spf.c]
+gcc  -I.  -I/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/include  -I/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/src/inn_inc -g -w -c /media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_store/src/bkc_store_spf.c -o bkc_store_spf.o
+
+为什么会有两次的进入
+等下看看
+
+>>
+[Q]
+make: execvp: /media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/out/libbkc_dlist.a: Permission denied
+make: *** [libbkc_mk_vsubmod_bkc_dlist.a] 错误 127
+看这种错误怎么追纵
+
+>>
+[td | Q]
+以下说明了刚才的猜测可行, 可能是configure 出错导致的.
+等下试试, include 是否会被重新读入和解析(如果整个makefile 有include 被创建时)，
+如果不能(能也如此)我们就采用这种简单的出错方式. 这样方便后续的调试
+
+>>
+[lk |td]
+等下要按照template中的内容去修改一下主makefile
+
+>>
+[lk | td]
+子makefile中的变量与父类型中的变量需要好好看看.
+
+>>
+简单的参数处理
+########################################
+#setting the vars properly
+#according to the command-line arguments
+#
+
+ac_opt=
+ac_arg=
+while [ $# -gt 0 ]; do
+    ac_opt=$1
+    ac_arg=`expr "$ac_opt" : '[^=]*=\s*\(.*\)'`
+
+    case $ac_opt in
+    ENV_BKC_MK_MODNAME*)
+        env_bkc_mk_modname=$ac_arg
+        ;;
+    ENV_BKC_MK_SUBMOD_LIST*)
+        env_bkc_mk_submod_list=$ac_arg
+        ;;
+    ENV_BKC_MK_NBMOD_LIST*)
+        env_bkc_mk_nbmod_list=$ac_arg
+        ;;
+    ENV_BKC_MK_MOD_LOCATION*)
+        env_bkc_mk_mod_location=$ac_arg
+        ;;
+    ENV_BKC_MK_EP*)
+        env_bkc_mk_ep=$ac_arg
+        ;;
+    ENV_BKC_MK_SP*)
+        env_bkc_mk_sp=$ac_arg
+        ;;
+    --)
+        #By convention, --ends options
+        shift
+        break
+        ;;
+    *)
+        echo $0: $ac_opt: unrecognized option >&2
+        ;;
+    esac
+
+    shift
+done
+>>
+高级一点的参数处理
+这个可以在classic shell scripting 中找到getopts 的用法, 不过这里没有用到, 留个爪印.
+
+>>
+注意shell 脚本也可以在””中进行变量替换
+
+>>
+[lk]
+这个正则表达式有用
+	ac_arg=`expr "$ac_opt" : '[^=]*=\s*\(.*\)'`
+
+>
+
+在脚本中可以使用 $0～$9 访问传递给脚本的参数（可以通过shift命令修改）。
+
+一些特殊的脚本参数：
+
+$# 传递到脚本的参数个数
+$* 以一个单字符串显示所有向脚本传递的参数。与位置变量不同，此选项参数可超过9个
+$$ 脚本运行的当前进程I D号
+$! 后台运行的最后一个进程的进程I D号
+$@ 与$ ＊相同，但是使用时加引号，并在引号中返回每个参数
+$- 显示s h e l l使用的当前选项，与s e t命令功能相同
+$? 显示最后命令的退出状态。0表示没有错误，其他任何值表明有错误。
+
+>
+[lk]
+正则表达式
+\s 空白字符：[ \t\n\x0B\f\r]
+\t 制表符 ('\u0009')
+\n 新行（换行）符 ('\u000A')
+\r 回车符 ('\u000D')
+\f 换页符 ('\u000C')
+\a 报警 (bell) 符 ('\u0007')
+\e 转义符 ('\u001B')
+\cx 对应于 x 的控制符
+
+>>
+ENV_BKC_MK_SUBMOD_LIST="$cmpfa_almodlist"
+注意这个表达, shell中长字符串的表达方法, 否则是分开的
+
+>>
+［Q］
+makefile中
+$(shell echo ddd)
+这样放在文件的开头会有错误, 这个需要看看
+
+>>
+[Q]
+make的两次进入的打印需要查看一下
+
+>>
+[lk]
+echo 3434 | awk '{print $1+2}'
+在计算数字的时候很有用
+如
+	@echo "make[$(shell echo 0 | awk '{print $1+1}')]:leaving $(bkc_mk_mtopdir)/src/bkc_dlist/build"
+打印层数
+
+
+
+>>
+[lk]
+keep in mind:
+有两点好处
+x1. 可以减少子模块到父模块, 兄弟模块之间的lib的重复拷贝.
+x2. 可以拥有方便的模块内部slight的机制: 前提是我们确认需要的库已经准备好(也可以说
+      此时我们只关注模块内部文件的修改).
+
+
+>>
+接下来的步骤
+把neighbor 模块加入(ok)
+    试试这个neighbor模块是否可用(store中去实验)
+把 configure 加入
+    试试这个模块中公共模块和外部模块的信息
+在dlist 上实验 configure机制的可行性
+
+在主configure 中加入每个模块的配置信息(要把每个模块的发布状态加入)
+
+在所有模块内推广
+
+注意:
+全局的configure有如下一些信息:
+a1. 模块名字
+a2. 模块中子模块的名字
+a3. 模块依赖的模块的名字
+a4. makefile中相应模块的头文件列表
+
+>>
+常用的echo格式, 记录一下, 方便查阅
+
+       -n     do not output the trailing newline
+
+       -e     enable interpretation of backslash escapes
+
+       -E     disable interpretation of backslash escapes (default)
+
+       --help display this help and exit
+
+       --version
+              output version information and exit
+
+       If -e is in effect, the following sequences are recognized:
+
+       \0NNN  the character whose ASCII code is NNN (octal)
+
+       \\     backslash
+
+       \a     alert (BEL)
+
+       \b     backspace
+
+       \c     suppress trailing newline
+
+       \f     form feed
+
+       \n     new line
+
+       \r     carriage return
+
+       \t     horizontal tab
+
+       \v     vertical tab
+
+>>
+注意shell会对\t进行解释, 所以实际上我们要用\\t表示horitontal tab
+
+
+>>
+[Q | lk]
+echo  \\t"echo [#mv module output]" >> libbkc_mk_vsubmod_bkc_dlist.a.sdep
+echo  \\t"echo $< $@" >> libbkc_mk_vsubmod_bkc_dlist.a.sdep
+Makefile:169: 警告：覆盖关于目标“libbkc_mk_vsubmod_bkc_dlist.a”的命令
+libbkc_mk_vsubmod_bkc_dlist.a.sdep:2: 警告：忽略关于目标“libbkc_mk_vsubmod_bkc_dlist.a”的旧命令
+Makefile:169: 警告：覆盖关于目标“libbkc_mk_vsubmod_bkc_string.a”的命令
+libbkc_mk_vsubmod_bkc_string.a.sdep:2: 警告：忽略关于目标“libbkc_mk_vsubmod_bkc_string.a”的旧命令
+Makefile:169: 警告：覆盖关于目标“libbkc_mk_vsubmod_bkc_store.a”的命令
+libbkc_mk_vsubmod_bkc_store.a.sdep:2: 警告：忽略关于目标“libbkc_mk_vsubmod_bkc_store.a”的旧命令
+
+[cmt]
+这里有两点值得注意:
+a1. make中忽略或覆盖旧的规则会有提示, 除非使用-include
+a2. echo 在交互shell中需要-e参数, 而实际操作时却不需要, 需要看看.
+      怀疑与make的默认执行参数有关.
+
+A3. 可以去看看如何打印规则而不执行
+
+>>
+[lk]
+make: ***
+这种信息一般都是make产生的
+
+>>
+[lk | Q | td]
+实际上$@ 也是shell的一个变量, 所以用
+echo $＠ > new.txt 中看不到$＠字符串, 用\$@
+[cmt]
+$@是shell 的什么变量, 需要看看.
+$(string) 实际上也是shell 的特殊函数调用, 等下看看
+
+>>
+虽然#$() is better than ``
+但为了清晰, 我们这里首先还是用``
+
+>
+>>
+20100122
+>>
+我们要做的是这样, 制造一个能适应所有模块的makefile
+替换这样的makefile
+替换模块制造工具, 然后放到/build/toolkit/下, 然后再写一个通用的工具引擎utils_claw
+子模块编译之前是否要configure呢?
+有, 我们采取这样一个机制, 如果第一次configure 完毕,  全局有一个标志记录.
+否则每个子模块的configure都会首先跑到顶层(通过相对路径来寻找)来执行configure
+注意, 每个configure相对主configure 的位置是需要具体模块具体调整的.
+
+>>
+今天发现一个开放的隐藏, 无法避免.
+比如一个应用程序链了很多库, 这些库之间不产生名字冲突的问题
+与一个模块内部所包含子模块被透到外部来是一样的.
+
+关键是源码支持还是库支持的问题. 如果是源码支持, 就不同了,
+
+
+>>
+
+以下记录了需要全局传递的一些信息:
+
+使用什么交叉编译器. 这在configure的时候必须确定.
+
+系统准备编译哪些模块, 这些模块的发布状态
+(nt: 不是位置信息, 发布状态决定
+为外部提供什么样级别的支持(inner, upper, double-upper), 位置信息决定可以从哪里得到支持)
+
+
+>>
+有以下一个原则可以暂时来参考一下:
+模块只需要关注本身, 所在层次的上层, 子模块
+需要思考, 这是否不损害简洁, 或者说冗余可接受.
+
+>>
+一个模块可以接受本层的inn_inc(内部公共区域的另一个备份, 属于模块内部隐藏, 内部共享), 也必须接受上层的inn_inc(上层给本层的内部支持). 上层的include(发布给更外层)
+
+>>
+替换一个模块中的makefile需要修改如下的变量
+模块名字:
+模块子模块列表:
+模块邻居依赖列表:
+模块的位置状态:
+
+
+>>
+[td]
+等下完成
+还有一个问题没有解决:
+如果模块用到相邻模块的支持, 需要相应的办法, 注意,
+相邻模块在测试的时候用得着.
+
+现决定如下: 旁路模块编进本模块中, 这方便测试, 也方便最终的集成.
+
+>>
+[td |lk]
+要看看静态模式中的依赖是否可以有两个%号(一般只使用一个茎)
+have to seeee
+目前是用shell 命令来做的
+
+>>
+[td | lk]
+公共的规则放到一个单一的文件中去.
+
+
+>>
+源码子模块上提的过程中:
+有以下原则可考虑:
+a1. 头文件上提
+a2. 如果上提的子模块只是被上层一个模块用到, 可以先保持上提模块位置不变,
+只修改其编译include(以防止编译路径问题), 此时做好记录, 相当于准上提模块,
+如果有第二个模块也用到了此子模块, 才真正上提. 这可以避免上下反复移动.
+a3. 在一个源码包中集成一个模块也会遇到此问题, 因为此进入的包的头文件可能会
+      被发布到外层, 这时不可避免会出现这个问题:
+      解决方法是增加include 的父目录, 修改路径依据a2来修改
+
+>>
+对今天想清楚了一件事情:那就是如何处理全局信息和外部信息一件事情:
+概念: 外部信息是把一个模块嵌入更大一个模块中时理应获得的一个外部环境认知,  不侵害
+        其独立性 (注意: 我们追求的目标就是, 独立,  明快, 有趣, 有用)
+        最典型的外部信息就是头文件被暴露的层次, 这个很重要.
+
+        全局信息是本模块以及本模块内部子模块共同遵循的一些规则.这也不侵害其独立性.
+        一个模块理应对其内一些公共信息有一些描述, 模块一旦放入一个环境中就会产生
+        最基本的两个关系: 父模块与子模块的的关系, 以及自己任何子模块的关系.
+        从而需要一个节点来存储这些非源代码共享的信息
+
+方法:
+        每个模块的configure必须有一个路径指示到全局信息位置.
+        每个模块的configure必须有相关需要的外部环境的一个特定字符串的描述
+
+>>
+[td | lk]
+发现缺少一个.a的规则, 尤其是子模块没有这个的时候, 注意怎么去更新.
+等下添入, 再更新到各个子文件夹中.
+
+Here tag
+>>
+[lk]
+make: *** 没有规则可以创建“libbkc_mk_vsubmod_bkc_dlist.a”需要的目标“/media/disk/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/out/lib%.a”。 停止。
+看这个error,
+是由这个规则导致的
+$(bkc_mk_vsubmod_fpname_list): libbkc_mk_vsubmod_%.a: $(bkc_mk_mtopdir)/src/%/out/lib%.a
+也就是说%不能重复用, 这可怎么办呢?
+
+>>
+[lk | td]
+make 的依赖关系中容许使用shell函数, 也就是迟后处理, 这点很重要.
+这可以创建复杂的字符串, 并且还可以用到前面的%(jing), 太酷了.我决定改天要阅读make的源码,
+oh, yeah.
+Sed -g 有否需要查看一下.
+
+>>
+[lk ]
+没有命令的规则会被删除
+如何输入-t需要看看
+
+>>
+$(foreach sin_mod, $(bkc_mk_nbmod_list), $(shell cd $(bkc_mk_mtopdir)/..; pwd)/$(sin_mod)/out/lib$(sin_mod).a)
+[lw | lk]
+看到了其中shell 的妙用了吧
+
+
+
+>>
+［lk]
+不错, 今天了解了静态模式规则, 这一点很有用:
+静态模式规则可以为指定的对象来指定规则, 比通常的模式规则(包括多目标)的更加具体.
+
+［Q | td］
+等下看看静态模式规则的目标中是否可直接使用通配符(一般可使用$(filter %.o,$(files)): )
+对了, 等下还要看看makefile中是否有求值的语句, 按说此处不需要直接求值, 只是匹配
+到了的时候才默认来求值（极, 目标不需要开始就确定, 否则匹配太单一了, 不方便）.
+目前使用当前路径避免了这个问题,
+但还是要查看一下, 如何匹配开头一段动态的地方比如*pic_dd%这种表达是否可以(放在静态
+模式的TARGETS ...: TARGET-PATTERN: PREREQ-PATTERNS ...的target-pattern 中).
+
+
+
+>
+>>
+20100121
+>>
+等下注意以下把静态连接库变成动态连接库
+>>
+cp -f /home/sanyk/hut/project/bkc/src/bkc_dlist/lib/libbkc_dlist.a  /home/sanyk/hut/project/bkc/build
+cp: 无法 stat “/home/sanyk/hut/project/bkc/src/bkc_dlist/lib/libbkc_dlist.a”: 没有该文件或目录
+这样一段打印是由于多个前后相同目标造成的,　可以查看一下,　是否以后面一个为准则,　还是内部
+有积累的过程.
+
+>>
+ $(foreach sin_mod, $(bkc_mk_submod_list), $(bkc_mk_mtopdir)/src/$(sin_mod)/out/lib$(sin_mod).a)
+[lk]
+注意, 这个给了我们很大的帮助, 其可以突破patsub只替换一次的限制.
+
+>>
+[Q]
+发现all之前如果有其他的目标, make会走入错误的路径, 这一点需要关注一下.
+目前all 最好放到第一个目标中
+
+
+>
+>>
+20100120
+>>
+step
+a1. has a list
+a2. for each member in the list, we get in and make
+a3. finally, we collect all the modules and get a fanta output
+
+>>
+错误记录
+makefile 文件编写的时候, 注意
+bash中的echo前添加@无意义, 这是makefile中的标志.
+
+>>
+[Q]
+bash中表达$真实字符串需要看看.因为一般都是$file表达了变量, 如果真正要
+表达”$file” 这个字符串, 我们怎么办？
+
+>>
+[Q]
+cp -v Makeconfig{,.orig}
+这个bash 的方法需要学习一下.
+脚本中不能用, 这个有问题.
+
+>
+>>
+20100117
+>>
+[lk]
+今天突然想到一件事情: 如何有效的在用户的软件体系中快速嵌入bkc
+1. 通过include 中头文件, out中的libbkc.a(今后会有两个版本libbkc.so)
+2. 如果要嵌入源代码呢?这样:
+    bkc 为一个模块, build为其总共模块, 在用户进入build之前把所需头文件
+    再拷贝回include中，编好后再删除这些头文件. 拷贝走要用的.a或.so
+    这里也考虑过使用一个用户传入的全局发布路径,  但这样就会引入用户提供的不必要的
+    头文件包含, 所以暂不采用这种方法
+
+>>
+对于module模板文件夹的修改:
+添加了src中的inn_inc用于模块内部所有模块间共享.
+所以对整个体系结构我们可以简单理解:
+模块为外部模块提供了什么, 外部模块又为本模块提供了什么
+
+模块为外部模块提供了什么:
+a1. 一个模块中include, out 都是从外部来看本模块的视角
+a2. 可以发布到外部的模块的src/inn_inc中表示可供外部模块中所有子模块使用
+a3. 可以放在本身的include 中不动, 表示只供外部模块内部的一个或几个模块使用
+a4. 可以发布到外面模块的再外部(外部模块inlcude/中), 表示随外部模块提供给更外层的模块
+
+外部模块又为本模块提供了什么:
+a1. 外部模块内部子模块对此模块提供的一般性支持(对所有子模块的支持)放在了外部
+      模块src/inn_inc中
+a2. 外部模块内部字模块对此模块提供的特殊服务可在相应子模块目录/src/子模块/include中
+      找到
+
+>>
+以下是模块嵌套的演化路径:
+1. 添加任何一个模块以扁平状优先组织
+2. 在极端情况下我们还是会遇到长长的嵌套: 这时的演化路径为:
+    需要则上提, 修改其上一级文件, 最终可理想结果是整个模块是一层扁平结构, 这也是
+    1.中的演化路径,
+    嘿嘿, 完美啊, 完美, 月亮啊月亮, 现实啊现实, 参差啊不齐, 风味风味.
+
+
+
+>
+>>
+20100116
+>>
+看以下的错误,
+/media/disk/hut/project/fav_project/bkc/develop/bkc/src/bkc_timer/include/bkc_timer.h:58: 错误： 字段‘exp_func’声明为一个函数
+/media/disk/hut/project/fav_project/bkc/develop/bkc/src/bkc_timer/include/bkc_timer.h:78: 错误： 声明指定了两个以上的数据类型
+make: *** [bkc_timer.o] 错误 1
+
+其实是
+typedef int (*bkc_timer_expired_func_t)(void *param_p);
+写成了typedef int (bkc_timer_expired_func_t)(void *param_p);
+两码事情, 后一个的后半部分是一个声明, 其实typedef要的是一个定义,
+也好错误总是能让我们多想一些事情.
+
+>>
+其实想想pthread_mutex的常量初始化(不是init, 而是直接常量赋值的那种),
+我们可以得出一个结论: 其实最要紧的是有一个真正的底层栅栏指令, 否则应对有多个
+线程同时lock, 直接的赋值就是有风险(这里要考虑到变量隐藏是指针的替换, 这时
+多个线程来访问可就会有风险).
+
+所以我们采用比较简单的create, destroy来使用, 而不是init.
+这是必然的选择, 除非有底层栅栏指令的支持, 或者已经可用的PTHREAD_MUTEX_INITIALIZER
+之类的常量的支持, 但后两者与平台联系太紧密了, 所以暂时不去选择.
+
+>
+>>
+20100113
+>>
+突然想到一个问题:如何更好的分割函数的注释，
+以最小适用原则来做就可以:
+灵活使用意群分割, 上下有所区别就行,  简洁就好.
+>>
+接下来要把头文件添加完整的模块有:
+bkc_time
+bkc_timer
+bkc_pasync
+bkc_crc
+bkc_socket
+
+
+
+>
+>>
+20100112
+>>
+等下完成了time的头文件后要把timer对其的引用的和相应makefile进行修改
+需要继续添加完善的模块为:
+bkc_time
+bkc_timer
+bkc_pasync
+bkc_crc
+
+>
+>>
+20100110
+>>
+今天已经把:所有已知的模块设计文档初步完成
+接下来要做的是:
+a1. 把每个模块的头文件根据么模块设计进行完善
+a2. 把模块状态列表更新, 被删去的要注明
+a3. 把基本建构环境进行优化,  加入make时候的模块定制机制
+a4. 更新主模块说明头文件
+a5. 上传到google code中去
+
+>
+20100109
+>>
+删除了bkc_net, bkc_btree. 此二者留作后续添加.
+>>
+今天的目标, 把crc, time, timer 这几个模块的设计和头文件整理好.
+
+
+>[##############tiny unit\]
+
+
+>[tiny unit]
+
+>
+时间段:20091115-2009xxxx
+模块们:f模块bkc_time
+
+>
+20091220
+>>
+今天实验了一个困扰很久的问题： 动态连接库中的全局变量如何共享.
+确实如预想的-cow,写时拷贝.就是两份,从而不用担心多个进程的干扰.
+701  gcc ./share_prt_tb.c -L. -lshare_prt -o ./share_prt_tb
+gcc share_prt.c -fPIC -shared -o libshare_prt.so
+
+>
+20091219
+>>
+[add]
+今天加入了bkc_store模块.
+today is also my birthday.
+>>
+基本操作:
+打开:
+关闭:
+
+
+
+
+>
+20091217
+>>
+等下试试点能不能折行
+[a]
+能
+
+>
+20091216
+>>
+[lk | tu]
+bkc_pthread_attr_definit
+这也许需要加入文件名字等参数, 最好还有一个用户给定的线程的名字.
+目前是没有这么做.
+>>
+/media/disk/hut/project/fav_project/bkc/develop/bkc/src/bkc_pthread/src/bkc_pthread.c:227: 错误： 声明指定了两个以上的数据类型
+这是由于struct｛｝后没有分号的原因.
+
+>>
+[lk | tc][ok]
+int bkc_pthread_operate_pdeamon(bkc_pthread_daemon_op_mode_m mode);
+这个函数还没有完成, 明天接着完成, 然后把20091213没有完成的部分加入.
+
+
+>
+20091213
+>>
+[lk | tc]
+[mod info bkc_pthread]
+目前还要完成两件事:
+1. 写文件的时候要异步机制(可能需要一个文件锁)[ok]
+2. 后台log方式的时候, 时间间隔的实现需要考虑一下, 也许需要一个有限等待的条件.[ok]
+不过目前这些函数可以测试了, 测试放在后面来完成.
+我们可以接着做下面的模外设计和编码.
+首先完成1. 2. 再做测试. 不要贪多.
+3. bkc_pthread 中还有几个私有的函数没有添加声明, 要及时添加上.
+
+4. 有几个公共函数的模块初始化许可还没有加入, 注意, uninit函数是不需要这个许可的.[ok]
+
+5. 要考虑到初始化和结束模块的重入问题.(考虑加一把锁)[ok]不需要, 外界不应该同时调用.
+
+6. 线程创建的时候因该考虑要给一个名字(其实所有的对象创建的时候都应该考虑这件事情)
+7. 要在模块初始化函数中添加一个模块是否已经初始化的判断[ok]
+
+>>
+今天写到了超时函数的处理, 明天接着写.
+
+
+>>
+对于一个模块, 如果内部要用到这个模块中的外部接口
+
+>>
+[lk | tt]
+今天的测试其实说明了一个问题, file结构是否可以传递.
+预计可以传递, 需要实际看看.
+
+>>
+其实今天dlist操作参数的添加就说明了代码进化的重要性, 进化, 自我进化, 不断进化.
+
+>>
+bkc_dlist_deldnfmpn 要搜索调用, 改过来.
+ok, 已改过来了.
+
+
+>>
+所有打印应该有一个指向性, 因为这可以方便设定目的地.
+
+>>
+[lk | tu]
+BKC_FC_CT()要看看是否支持出错时处理一个函数.
+这样可方便很多的错误打印
+
+>>
+[lk | tu]
+BKC_FC_ERRTHR 的参数顺序被改了,　 这个要添加到模板.
+
+>>
+strerror, 这个要添加.
+errno, 这个要添加.
+
+
+>>
+async的三个基本原操作
+1. 唤醒指定的执行体(如线程）来执行(wake-up)
+2. 使得指定的执行体(如线程) 休眠,(hang-on)
+3. 栅栏操作(可由硬件指令来实现):比如testandset
+对于testandset:语义可以如下:
+
+testandset(a, b)
+如果条件为a, 则设置为b继续运行下去
+如果条件为b, 则反复测试此条件.
+
+这种语义很容易实现锁
+比如
+testandset(1, 0)->lock
+如果条件为1则设置为0, 继续运行下去.
+如果条件为0则反复测试此条件.
+...
+
+testandset(0, 1)->unlock
+如果条件为0, 则设置为1继续运行下去
+如果条件为1, 则反复测试此条件.
+...
+
+>>
+三个异步概念的关系:
+信号量
+锁
+条件
+
+>>
+semaphor两级选择控制, p的时候进行级别判断运行,v 的时候进行级别判断唤醒.
+
+>>
+semaphor的实现语义
+
+1.
+p(semaphor) 操作:
+
+tag1:barrier
+把自己放入备选择运行的队列;
+按照预定的选择策略选择一个来分配资源;
+把自己移出备选择运行队列;
+
+如果发现选择的不是自己:
+     把自己放到semaphor的等待队列中，登记
+    unbarrier
+        等待(hang-on(self))
+    ...(直到hang-on(self)结束, 本执行体又被执行)
+    goto tag1
+如果发现选择的就是自己:
+    判断res是否够用
+    够用
+        占用一个或指定数目的资源,做好记录,
+        继续下去(continue p operation)
+    unbarrier
+    不够用
+        把自己放到semaphor的等待队列中，登记
+    unbarrier
+        等待(hang-on(self))
+    ...(直到hang-on(self)结束, 本执行体又被执行)
+    goto tag1
+
+
+2.
+v(semaphor) 操作:
+
+barrier
+归还得到的资源, 做好记录
+判断是否有执行体在等待res
+    有
+        按照策略选择一个,把它加入备选运行队列, 唤醒它(wake-up(her)),
+    无
+        继续下去
+unbarrier
+
+
+>
+20091212
+
+>>
+是否有/***/的需要，目前看是没有.
+自然成体系, 不需要过多的在意, /***/十分有必要才需要添加,往往是函数功能太长.
+如果一段功能独立, 用一个空格基本可以看出来, 无需过多的考虑.
+其实这也是灵活书写的体系, 太死板就没有趣味了.
+
+>>
+[lk | tu]
+stack, queue 退出的时候要设置清除函数.
+
+>>
+[tu]
+              int    sched_yield(void);
+>>
+              int    sched_get_priority_max(int);
+等下要看看
+
+>>
+153
+
+>>
+模块中要添加get_self这么一段话.
+
+>>
+[+++]
+[tu]
+phtread模块unint的时候，要加入删除所有线程的操作, 原来认为这个不属于此模块的责任, 而是用户的责任
+现在来看,是很有必要的, 这属于强悍容错设计的一部分.
+
+>>
+        BKC_PTHREAD_MODINIT_CK(1, BKC_PTHREAD_RERR, "mod uninitialized\n");
+
+>>
+[lk | td]
+看看指定结构的成员初始化的相关的方法.
+
+>>
+时间函数的用法:
+用到#inlcude   <time.h>头文件里的一个time()函数和localtime()函数
+
+  函数原型：   time_t   time(time_t   *timer)
+  函数用途：   得到机器的日历时间或者设置日历时间
+  头   文   件：   time.h
+  输入参数：   timer:=NULL时，得到机器日历时间,=时间数值时   用于设置日历时间;
+
+  time_t是一个long类型
+
+  函数原型：   struct   tm   *localtime(const   time_t   *timer)
+  函数用途：   返回一个以tm结构表达的机器时间信息
+  头   文   件：   time.h
+  输入参数：   timer:使用time()函数获得的机器时间；
+
+  结构tm的定义为：
+  struct   tm
+  {
+  int tm_sec; /*   Seconds:   0-59   (K&R   says   0-61?)   */
+  int tm_min; /*   Minutes:   0-59   */
+  int tm_hour; /*   Hours   since   midnight:   0-23   */
+  int tm_mday; /*   Day   of   the   month:   1-31   */
+  int tm_mon; /*   Months   *since*   january:   0-11   */
+  int tm_year; /*   Years   since   1900   */
+  int tm_wday; /*   Days   since   Sunday   (0-6)   */
+  int tm_yday; /*   Days   since   Jan.   1:   0-365   */
+  int tm_isdst; /*   +1   Daylight   Savings   Time,   0   No   DST,
+    *   -1   don't   know   */
+  };
+
+#include   <time.h>
+  #include   <stdio.h>
+
+  void   main()
+  {     time_t   t;
+        tm   *tp;
+        t=time(NULL);
+        tp=localtime(&t);
+        printf("%d/%d/%d\n",tp->tm_mon+1,tp->tm_mday,tp->tm_year+1900);
+        printf("%d:%d:%d\n",tp->tm_hour,tp->tm_min,tp->tm_sec);
+  }
+
+
+>>
+初始化一个变量有什么好处:
+1. 方便后文操作.后文不需要再赋值(这包括有效值和无效值, 都是对后文有意义的值).
+2. 为了后文使用的时候如果没有初始化， 不至于崩溃.
+   其实这掩盖了错误.
+3. 可以方便调试, 比如初始化一个特殊值, 调试的时候可以进行跟踪.
+
+灵活使用就ok. goes on.
+
+>>
+struct bkc_pthread_tag_t {
+    /*the index tagged for this pthread*/
+    unsigned int idx;
+    /*the status of this thread*/
+    bkc_pthread_status_m status;
+    /*the time-info of this thread*/
+    bkc_pthread_time_info_t time_info;
+    /*the pthread descriptor*/
+    bkc_pthread_pfdes_t pthr_des;
+    /*the create-info of this thread*/
+    bkc_pthread_create_info_t create_info;
+    /*the priority of the this thread
+      value range is [0, 40], and the priority of 0 is the most favorable,
+      40 least favorable*/
+    int priority;
+};
+
+
+>
+20091207
+>>
+detach操作现在并不提供， 原因为还没有应用的需要, 不需要的就要勇于删除.
+虽然其帮助文档中描述, cacellation的handler运行时
+需要这个函数以代替循环调用join, 但对用户来说使用并不迫切,
+暂不提供.
+
+
+
+
+
+
+
+
+
+
+
+>
+20091206
+
+>>
+[tk]
+突然想到两个观点:
+a1. 适合当时需要, 越简单越好.
+a2. 总有解决办法, 也总有更好的更坏的办法, 不需要一次全部做完,
+完美就是用来追求的, 完美就是不停修改不完美, 一次干不完, keep running and keep releasing.
+
+>>
+对于状态的一个思考:比如线程的状态, 比如定时器的状态.
+1. 本质上, 即从对象本身看都有四个状态： created, started, stopped, destroyed
+但我们可以从应用需要角度看, 就两个状态: running , stopped. 其中涉及到状态的精简.
+
+2. 如果考虑到参数设置(不是所有两个状态下都允许动态改变参数), 其实两个状态是不够的. 所以至少是三个状态:
+on_setting, running, stopped.
+running<->on_setting
+stopped<->on_setting
+setting这个状态表示改变参数的状态, 是否一定要这个状态与具体对象有关, 如果对象容许所有状态下动态
+改变参数，on_setting就不需要了, 如果不行可以考虑都转换到可以改变参数的状态下去统一去做,
+如果可以, on_setting可以就与此状态重叠, 可以不显示增加on_setting状态.
+
+
+>
+20091205
+>>
+[tk | tu]
+libc也许需要改个名字, blibc, 因为提供的是最基本的c支持.再想想.
+>>
+lib文件夹应该可以这么用:装外部提供的, 以非源码形式提供的模块,
+不过还是不如这样直接明了:所有模块都是src的一个部分（这也是提醒我们, 要注重和珍惜源码）,
+当第三方以非源码库提供的时候, 也会在src中占用一个模块文件夹, 只要模块信息中加以记录此模块为
+非源码就行. 这样可以方便提供此模块的暴露级别, 而放在lib中会在这点上比较罗嗦.
+
+>20091130
+>>
+[tu]
+已经添加了
+/*for calling and checking*/
+#define BKC_CCT(func_calling, ret_checking) ;
+可行的话模板需要更新.
+
+>
+20091129
+>>
+[tu]
+很明显感到时间的表达是很重要的,所以得尽快加入bkc_time_t的表达模块.
+这样可以方便的表达一些需要系统时间的地方,比如
+bkc_time_time_info_tag_t，
+添加后可以做一些替换.
+
+>>
+[tu]
+timer的功能稍后加入，具体就是要，用户只是需要一个时间流逝衡量，并不关心
+实现所以。可以考虑一个心脏的跳跃方法.
+
+>>
+[tu]
+pth_pool 这个结构中肯定需要互斥的机制, 目前我们就直接用linux下的机制, 稍后
+会替换成特定模块的实现.
+
+>>
+[td]
+pthread_setschedparam
+用于设置线程的优先级别, 等下看看.
+pthread_cond_wait
+说是可以控制线程的启动和停止.
+
+>
+20091128
+>>
+
+
+>
+20091126
+>>
+[add]
+添加了bkc_time模块，这个模块老早以前就想添加了.
+
+>>
+Destroyed
+
+
+>
+20091121
+>>
+BKC_CKPRET
+这个函数目前看来似乎没有用到，需要看看设计时的意图.
+[cmt]回忆起来了，这个函数是用来返回之前检查返回值的.
+>>
+考虑一下是否可以用一个临时的指针ck来替代所有的下文ck.
+这样是否安全就决定于检查的开始了，所以使用指针之前要添加一个检测语句，
+这可能带来轻微的负担，但有时是值得的.
+[cmt]想了一个如下的对策:统一用chsthrow, 避免视觉负担.
+
+>>
+发现功能模块还是不能一个.h了事，而是要把公共模块中(提供给用户的.h)统一用到的定义放到另一个文件，
+其他此功能模块的小模块要用到这个模块时，只包含另一个def文件，在整个.h中包含多个子.h.
+名字等下再来好好取一个.暂时都用.def.
+
+>>
+[Q | lk]
+注意目前spf并不完全隔离c的功能, 简单的遵从需要才包含，把对NULL的依赖放到了用户的的责任里面，
+用户必须手动包含stdlib.h, 如果能把NULL重新定义成BKC_NULL再作整体修改.
+同样对于int, unsigned int 的使用不作限制,
+有必要有一个固定长度的机制，使用的时候包含就可以.
+反观要制作的类型:bool, null, 定长整型就ok了，名字不要太长.
+
+>>
+BKC_FC_PCK 已定义，但是否要用需要再考虑一下, 多一个名字多一个记忆的难度.
+
+>>
+刚刚突然想到一件事情,那就是，包含头文件的时候，把标准的库的头文件包含放到最后，
+这样可以一定程度上发现和避免用户头文件的包含.
+
+>>
+[lk | tu]
+记得函数写好以后整理一下描述，去掉不必要的实现说明.
+
+>>
+当前认为,除非bkc_libc已经比较完善了，否则标准头文件的包含如<stdlib.h>
+还是应该由用户自己来作而不应该在bkc_libc.h来做(用则包含的原则).
+
+>>
+[Q]
+等下要试试如果一个宏需要参数，但又没有传入参数，这时宏里面怎么样处理这个值.
+还要看看 return (); 这样的表达合法与否.
+
+>>
+[tu]
+bkc_string.c中有switch分支中default那一条没有完全错误返回.
+
+>>
+[ch]
+#define BKC_FC_CKTHR              BKC_TIME_SPF_CKTHROW
+已经在模板中去掉，以后可以只用BKC_FC_CT
+同时增加了
+#define BKC_FC_ERRTHR             BKC_TIME_SPF_ERRTHROW
+#define BKC_FC_SUCTHR             BKC_TIME_SPF_SUCTHROW
+来处理正确和错误的直接退出，并且
+增加了
+
+>>
+[ta ｜ ts]
+发现bkc_string模块中缺少这四个个功能的函数
+指定开始位置和长度的比较.
+int bkc_string_specmp(bkc_string_t *dstr_p, bkc_string_t *sstr_p);
+指定开始位置和长度的dup.
+bkc_string_specdup(bkc_string_t *str_p);
+bkc_string_speccpy
+bkc_string_getnchar
+bkc_string_insnchar
+int bkc_string_cpyspec(bkc_string_t *dstr_p, int dpos, bkc_string_t *sstr_p,
+        int spos, int *len_p, bkc_string_cpy_mode_m mode);
+
+int bkc_string_cmpspec(bkc_string_t *dstr_p, int dspos , int dlen,
+bkc_string_t *sstr_p, int sspos, int slen);
+
+int bkc_string_insnchar(bkc_string_t *str_p, int pos, char ch);
+
+char bkc_string_getnchar(bkc_string_t *dstr_p, int pos);
+
+ok, 马上添加.
+现在只添加了函数的声明，等下来添加其实现和测试.
+
+
+>>
+ok
+今天也可乘机对string的操作类做一个总结:
+1. copy(override:change, insert: append_str/char, insnchar, getnchar)
+2. dup
+3. cmp
+4  get_info(len, empty)
+5. sandbox
+
+>>
+[tu]
+准备修改int bkc_string_appd(bkc_string_t *dstr_p, bkc_string_t *sstr_p,
+        char *stext_p);这个函数以保持接口设计的完整，需要查看一下调用它的地方.
+准备要做的修改是: 添加一个ch参数.
+
+>>
+[tu]
+模板中准备要添加BKC_CR来替代BKC_CR,这个在regex模块中已经进行了替代.
+另外一个也准备要缩减BKC_FC_CT 要换成BKC_FC_CT
+BKC_FC_RT 也要替换RELAYTHROW了
+
+
+>>
+[tu]
+bkc_string_appd已被修改，然后需要做的是在test中测试这个修改.
+
+>>
+[tu]
+bkc_string中应该缺少左右移动的功能.可以尝试加入.
+到时候bkc_string_insnchar就可以只用这个来实现了.
+
+
+>
+20091115
+>>
+int bkc_time_spat_destroy(bkc_time_spat_t *spat_p);
+>>
+等下在每个模块中要添加如何使用这些模块的指引，即参考哪个test.
+
+
+>[###########################tiny unit\]
+
+
+
+
+
+>[tiny unit]
+
+>
+时间段:20090820-20091115
+模块们:f模块bkc_regex bkc_libc bkc_stack
+
+
+>20091023
+>>
+  keep on and happy on.
+>>
+  加入libc模块［tbc］
+
+>>
+  列入加入的模块:
+  libc [未完]
+  dutil [未完]
+  btree ［未完］
+
+
+>
+20091019
+
+>>
+  今天把bkc_libc.h的函数原型定义添加了，恩，对原来的知识也是一个回顾.
+  累晕了，睡一下，明天再接着弄. 不停被打断，不停继续啊.
+
+
+>
+20091013
+
+>>
+[lk | tu]
+调通了libc模块的编译，看来这确实后得像个办法自动化模块的添加和和删除，
+最好是必须的头，源文件也可以根据模块名字来自动生成 .
+
+
+>
+20091010
+
+>>
+  今天突然想通了，modps不需要，不需要每个模块都统一下层接口，
+  这样会给模块的调试丢掉灵活性，所以整理模块时要注意一定的原则，
+  在这里就是:给每个模块尽量的独立性，可读性。有时可以为这个多花点
+  时间来编码，来复制粘贴.
+
+>>
+  对于dutil的规划目前是这样的:
+  简单起见，用一个小模块来抽象，这样给用户减轻负担，只需要包含一个
+  dutil.h就可以使用了，但起内部需要一些细分的模块。
+
+  单层结构结构目录，用文件名来区分层次, 这也是值得尝试的一个方面。
+  可能以后还有很多地方用得着这个办法，
+
+可以任意添加单独的模块，模块细分是目标但注意，可合并来增加可理解性时，
+尽量合并，以后可以逐步划分， 这是一个策略问题。首先分散，根据需要合并，
+根据需要分散，根据需要合并...目的就是可理解，可维护。
+很多时候，我们是处于第一步骤（分散）和第二步骤（首次合并）就满足需要了。
+
+Dutil  的划分结构如下 :
+
+dutil_memo
+dutil_pthread
+
+>>
+[ntbd]
+可整理一下模块的划分图
+
+>>
+[gidea]
+libc中应该有一个固定长度字节的定义. 这个可以方便的给出需要
+
+>>
+［fgot］
+此刻，悟道了一个开发心态:时刻准备记录， 时刻准备忘记。
+你所看到的就是目前有道理存在的， 忘记的东西不要刻意去想起，
+因为如果真的很好， 总会在一个合适的时机再想起， 那是考虑会更加完善。
+所以首先要经常记录， 再经常忘记， 精华会重现， believe ， this is life.
+
+>>
+ [gidea]
+  刚刚想到cpu状态模块，目前把他放在dutil之外，呵呵。总会有地方方他的，
+  如果它很有用的话.
+
+
+>
+20091009
+>>
+今天把modps已经加入了工程, 接下来就是要在libc模块中使用和测试这个
+模块.
+keep on and happy on.
+
+
+>
+20091008
+>>
+[ntbd]
+libc 模块已经加入，但所有的函数名字都没有改变.
+所以想建造一个公共的调试模块，以后就不用为单独的模块进行添加了.
+可这样做也有不方便的地方，所有模块的调试接口都一致，是否会
+减弱灵活性. 统一起来有好处. 也有不好的地方.
+
+但使用统一的调试机制是比较方便的做法，所以，目前策略是：
+提供这样一个统一调试机制，对于以前的模块可以逐渐演化成采用
+统一的调试机制.需要添加一个模块替换的列表. mod_support_replace.txt
+记录哪些模块是已经被替换的，那些还没有.
+
+>>
+[note err]
+
+gcc -fno-exceptions -DLINUX -D_GNU_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DB_SYSTEM_linux=1 -D_linux_ -I ./ -I/home/sanyk/hut/project/bkc/src/bkc_modps/include -I/home/sanyk/hut/project/bkc/include /home/sanyk/hut/project/bkc/src/bkc_modps/test/bkc_modps_test.c -o bkc_modps_test -lm -L/home/sanyk/hut/project/bkc/src/bkc_modps/lib -lbkc_modps
+/usr/bin/ld: cannot find -lbkc_modps
+collect2: ld 返回 1
+make: *** [test] 错误 1
+
+这段错误经常发生，原因就是在写makefile时，把库名libxxx.a中lib给丢掉，注意这个问题.
+
+
+>20090904
+>>
+自结束的指令
+[mws | Q]
+有点记忆不清楚了,　什么叫做自结束指令.
+
+
+
+>20090902
+>>
+[lk | tk]
+ 一些主要的文档要考虑用版本号来命名
+
+
+
+
+>2009831
+
+>>
+[lk | tk]
+今天 调通了bkc_stack模块的测试，
+其实，发现一个很大的规律：
+如果发现要正常返回，而反回值又是一个异常值，这其中一定是有逻辑冲突，
+注意一件事，权衡一下，是返回值错误，还是不需要正常返回，
+思考到这里就会发现原来的一些问题
+
+>>
+[adding]
+stack.h 中添加了打印和内存检测的语句.
+
+
+
+>20090827
+
+>>
+[lk | tu]
+ weather 在工程中有的地方被拼成了weather, 查查，然后
+ 修改.
+
+>>
+[tk | imp]
+今天决定了几个命名和分类策略.
+1. 需要什么就包含什么
+2. 用户需要的是什么，就包含什么的头文件，让用户明确.
+3. 每个xxx.c 有以下两个相关文件
+xxx.h
+xxx_def.h
+前者描述的是提供给用户的信息-什么东西
+后者描述的是隐藏的，或用户不需要的信息，但模块内部需要用到-东西内部的结构
+
+从而如果一个辅助模块只是需要这个模块的帮助，只需要包含 xxx.h就可以了，
+
+如果这个辅助模块需要增强这个模块，则需要包含两个层次的信息:
+xxx.h知道了有什么
+xxx_def.h知道这个什么的具体细节，以便利用和改造
+从而这个模块可以成为这个模块的一个增强.
+
+
+
+
+>20090826
+
+>>
+[lk | tu]
+详细，彻底地测试stack, queue中的每一个函数
+stack, queue ,regex 模块的文档要及时的加入.
+
+>>
+[ipmh]
+14:34 2009-8-26
+今天加入了regex 模块，正式启动了regex的进程.
+this is wonderfull. keep on.
+
+>>
+[tk | lk | Q]
+ 如果说要保持模块间的灵活，
+ 那么怎么样使得裁掉一个库，把依赖于此库的库一起裁掉呢?
+
+
+>20090824
+>>
+今天已经加入queue这个数据结构.
+
+
+>20090819
+>>
+今天要把bkc模块的get node函数添加进来
+dlist 要加入remove nnode, 和remove all node, remove head, remove tail
+
+
+>>
+[lk | tk | imp]
+目前，我们认为，流程控制不能被去掉，
+对参数做检查，是正常流程中的一环，所以不能被去掉
+
+
+>>
+[lk | tk | imp]
+bkc_stack中的一些更新，check_throw，应该可以有一个reason参数，以得到
+ 返回的具体原因。所以从这个模块的check_throw以后需要添加这个参数.
+ 也许应该新命名一个检查函数
+
+ 这也就是说，如果以后有新的机制，最好用新的名字来替换.老的名字
+ 在这里可能涉及太多的修改.恩，新的机制.
+
+>>
+[lk | tk | imp]
+一个结构怎么保证其完整性呢?
+如果这个结构被篡改了怎么办呢？
+加检测的标志，结构中添加一个成员，其值为魔幻值，
+那么检测这个值，看数据是否被篡改.
+
+进一步怎么检测数据是否被篡改呢？
+ck32算法，放到结构中，也许有用，稍后来看看这个。
+
+>>
+reset 有待完成， 因为要完成dlist的remove all
+ 完成了之后还要测试.
+
+>>
+[mdf]
+ 在bkc_dlist模块添加了remove all, remove head, remove tail, remove n
+ 的操作
+
+>>
+从这里(if , else 语句的可行性)，我们可以看出设计的重要性.
+
+
+>>
+[lk | tu]
+现在每个模块都是手动添加依赖库，之后要用脚本来实现这些依赖.
+手动添加了依赖的库为
+bkc_stack
+
+注意目前有两个模块还没有完全，彻底的测试，我们需要做的就是
+规划好模块的依赖，然后进行比较彻底的测试.
+这些模块中的设计文档都要好好整理一下，
+最好每个模块有一图画或者童话故事加入.
+
+>>
+[lk | tu]
+也许BKC_DLIST_OPCODE_FIND_NSPEC_NODE
+中对传入的比较函数的参数非空的判断有些冗余，因为这完全取决于
+一件事，用户的比较函数是否用到了这个clue_p
+
+
+
+>20090818
+>>
+[lk | tk ]
+有时候我们会认为，释放以后再制空某个指针会降低速度，
+ 不尽然，目前我们的认识是：一个操作如果能带来安全，又不给
+ 阅读造成障碍，应该使用.
+
+>>
+[lk | tk | imp]
+bkc 提示分类
+warn
+error
+每一类可以再细分：
+error:
+[func return]:函数返回错误
+
+
+>>
+[lk | tu]
+bkc 的dlist  中缺少删除头，删除尾的操作，
+这个在实际中还是很常用的，
+今天尽量加上，尽管可以先用找到头，再删除的方法，
+但感觉还是不如直接操作方便
+
+>>
+[lk | tk | imp]
+我们认为在catch语句中进行错误的逐层退出是有必要的，
+
+下面加深对catch子句的理解：
+1. 是程序身体的一个部分，不可分割，如果这部分代码处理出错了，
+就说明是整个程序运行环境有出错了，返回值应该是错误代码处理
+的值，而不是进入错误处理代码的值. 这时统一用err来替代就可以了.
+其设定为不再抛出异常(把抛出异常的语句部分的值置为0，意味着正常，
+从而其后也不需要再加catch语句的，否则catch后再加catch,没完了.
+也就是说，需要确定每个catch语句最后是否可以添加一个清除terror
+的代码, 这在需要处理catch中抛出异常是有用的.这个功能已经在
+stack中添加了，现在不需要用，以后用的地方也很少，只在
+catch后面还需要错误处理的地方，少吧，多级别的错误处理，目前
+认为是冗余的
+
+
+>>
+[lk | tk | imp]
+下面对流程的返回控制进一步加强：
+1. errthrow(“错误原因”,其他属性)错误返回，提示错误消息
+2. sucret(正常返回值, 其他属性)，不需要提示错误消息，但要提供返回地点.
+并且这个返回地点的打印是可以控制关闭还是打开的，
+在跟踪程序的时候，这个很有用.尤其是很多地方都返回同一个正常值的时候.
+一般情况下外部不关心程序是从哪个点正常返回的.
+
+>>
+[lk | tk | imp]
+现在加强对函数返回值判断的体系，
+对每个内部调用的函数都要加返回值的判断，这成为整个安全体系的重要一环。
+一般的实例代码中，目前认为可以在需要关注返回值的时候进行添加，
+因为，往往用户端没有这种返回值检查退出的机制，我们认为，用户程序，
+只有在十分关注的地方才会有如此的需要，这时，加入手动的if判断就行了.
+再特殊就是用户有自己的错误处理机制了
+
+
+>20090817
+>>
+[imp | lk]
+犯了一个重复的错误
+typedef struct bkc_stack_tag_s {
+    bkc_dlist_t *dlist_p;
+}bkc_stack_tag_t;
+与
+struct bkc_stack_tag_t {
+    bkc_dlist_t *dlist_p;
+}
+是不同的
+
+>>
+[imp | lk | tk]
+bkc_stack_destroy的编写让我突然想起一个问题
+一个stack如果没有空，是否应该删除呢，
+答案是，应该。
+
+数据不为空应该给用户一个提示。
+但不是错误.
+
+往往在需要
+间接释放内存的时候用直接的指针来操作，避免中间指针的释放.
+
+中间会涉及到=这种强可依赖的操作，
+对于这种强可信赖的操作如 =，我们的处理是要返回，
+我们认为，对于强可依赖的操作都出错了，肯定
+是程序的问题， 一定要返回，不能继续下去了.
+
+
+
+>20090813
+>>
+[fg]
+bkc_stack_create
+刚写到一半，居然被打断了，ok。工作就是被用来打断的.
+
+>>
+[lk | tu]
+pub_out pub_inn 这个机制要改
+ 也就是说，不管是pub_out, pub_inn, 所有的文件头必须
+ 都能包含到
+
+>>
+[imp | lk]
+随时保存，这是正道
+
+>>
+/home/tsz/bkc/src/bkc_stack/src/bkc_stack.c:65: 错误：声明指定了两个以上的数据类型
+/home/tsz/bkc/src/bkc_stack/src/bkc_stack.c:66: 错误：函数声明定义为 ‘typedef’
+ 这是由于类型没有定义完全：如少了一边括号.
+
+
+
+
+>20090812
+>>
+两个接口的设计原型如下:
+bkc_stack_t *bkc_stack_create(void);
+int bkc_stack_destroy(bkc_stack_t * stack_p);
+
+
+>20090810
+
+>>
+[tu]
+bkc 今天要尽量做到，把栈的数据结构添加上去。
+
+>>
+收尾的一些工作：
+把stack中每个文件头换一下，换成现在的时间。
+
+>>
+[tu]
+注意，bkc_module这个文件夹需要整理一下
+以便生成新的module这个模块
+
+>[###########################tiny unit\]
+
+
+>[###########################recording happily \]
+
+
+
+
+
+>[要做的事list]
+
+
+>
+[时间段:20091206-2010xxx]
+
+>
+[file:/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_pthread/src/bkc_pthread.c][line2021]bkc_pthread_rand_mod_ck == 1 is not satisfied
+[file:/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_pthread/src/bkc_pthread.c][line2026][error][func return],please have a check,(fnret) == (sucfnret)is not satisfied
+
+>
+warning: core file may not match specified executable file.
+
+warning: Can't read pathname for load map: Input/output error.
+Reading symbols from /lib/libpthread.so.0...done.
+Loaded symbols for /lib/libpthread.so.0
+Reading symbols from /lib/libc.so.6...done.
+Loaded symbols for /lib/libc.so.6
+Reading symbols from /lib/ld-linux-x86-64.so.2...done.
+Loaded symbols for /lib64/ld-linux-x86-64.so.2
+Core was generated by `./bkc_pthread_test_main'.
+Program terminated with signal 11, Segmentation fault.
+[New process 28325]
+#0  0x0000000000407081 in bkc_dlist_uninitmb (dlist_p=0x1249011, op_p=0x7fff98dd0ef0)
+    at /media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/src/bkc_dlist.c:414
+414	        for (cnt = 0, dnode_p = dlist_p->sentinel_p->next_p;
+(gdb) bt
+#0  0x0000000000407081 in bkc_dlist_uninitmb (dlist_p=0x1249011, op_p=0x7fff98dd0ef0)
+    at /media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/src/bkc_dlist.c:414
+#1  0x000000000040737a in bkc_dlist_destroy (dlist_p=0x1249011, op_p=0x7fff98dd0ef0)
+    at /media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_dlist/src/bkc_dlist.c:492
+#2  0x0000000000402c3a in bkc_pthread_mod_uninit ()
+    at /media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_pthread/src/bkc_pthread.c:731
+#3  0x00000000004012e4 in bkc_pthread_t_cpdp ()
+#4  0x000000000040135e in main ()
+
+
+>>
+        BKC_PTHREAD_OPERATE_DLIST(
+            &(bkc_pthr_specdata.bkc_pthr_pool.ap_list_p), &op,
+            2, BKC_PTHREAD_RERR, NULL);
+[lk | td]
+最后发现, 又是当时时间有限, 没有仔细检查自己打的&号, 恩, 代价重现.
+看来防范类型的正确性很重要, 后面要注意这一点. 每个类型加入
+安全防范.
+
+>
+[lk | td]
+要看看父线程走了, 子线程是否可以以detach后的状态存在, 估计可以, 只要
+整个进程没有退出来.
+
+>
+[lk | td]
+pthread 的调试模板比较新, 新添加的模块可以用这个模块.
+
+            ret = pthread_cancel(pthr_p->pthr_des.pth);
+            /*if ret != 0 , we consider the thread has been
+              canceled, maybe we need an explicit way to
+              judge this condition*/
+            /*BKC_FC_CT(ret == 0, 1, -1, NULL);*/
+
+
+>
+[lk | td]
+pthread 优先级别的计算要精确些, 现在发现损失了两个精度,
+如0 能对应到97而不是99
+
+>
+[lk]
+[file:/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_pthread/src/bkc_pthread.c][line1051]in bkc priority is 375347184,  out posix priority is 37383458[file:/media/disk-1/hut/project/fav_project/bkc/develop/bkc/src/bkc_pthread/src/bkc_pthread.c][line1054]posix_prio >= posix_min_prio && posix_prio <= posix_max_prio is not satisfied
+
+这段错误的出现是由于传递指针时, 写错指针, 调试了半个小时, 这下明白了编码的代价
+了吧.
+
+
+>
+[td | lk]
+bkc_pthread中有对pthread的单独的包含, 我们需要做的就是
+加入单独定制LOADFL， 稍后去做, 目前全局加入.
+
+
+
+>
+[td | lk]
+给适当的模块添加模块依赖检查
+
+>
+[td | lk]
+需要更新bkc_mod
+(d20100203)
+
+>
+[td | lk]
+应该添加一个路径名处理模块（目前考虑在高层添加, 如果放在libc中
+处理起来有难度, 要应对并发处理的本定保存, 因为主要会用在调试时
+文件名字太长的时候）
+
+
+>
+[td | lk]
+查看一下$< 与 $^的区别, 老忘.
+Ok, $^为第一个参数, $< 为所有的参数
+
+>
+[td | lk]
+要看看makefile 中一般的文本处理需求, 即sed来过滤出指定字符串的功能,
+如果但靠makefile中提供的字符函数还不足以挑选出指定的中间字符串.
+
+>
+
+[td| lk]
+有的源码地方有文件夹没有, 这时应该怎么去建立, 比如out 文件夹.
+Ok, 目前手动替换, 做到在modtemplate中有, 其他挨个替换. 这个工作不应该放到makefile
+中, 但应该有所提示, 该提示部分以后应该加入. 也许要考虑一个消息提示机制. 恩想想.
+
+>
+[td | lk]
+测试模块源文件的灵活管理需要加入(即, 测试模块的main文件可以同时有多个, 方便来说, 一起编译
+目前固定一个, 后面进行mend)
+
+>
+需要把bkc的makefile架构组成一个说明文档
+需要写一个makefile替换程序
+
+>
+[lk | tadd]
+bkc_pthread 模块可以后续添加这样一个功能:
+后台替用户监视一组线程, 而不是只是一个, 或者全部.
+
+>
+可以搜索
+[lk | tu]
+得到零散的记录, 以下是比较集中和重要的修改.
+
+>
+20091213
+[lk | tu]
+今天又添加了一个需求, bkc的支持模块中应该有一个标准输入, 标准输出, 标准错误的表示.
+标准输出就是所有默认的输出地方, 这要改变BKC_PRT的默认实现了, 往后继续添加.
+
+>
+[lk | up | add]
+今天bkc_dlist中修改了打印和遍历以及destroy,几个remove的函数参数个数, 使得handler可以处理用户的参数,
+这一点需要再测试一下. bkc_dlist_test.c bkc_dlist.h bkc_dlist.c
+中都改了, 下一步就是需要再测试一下.
+并要调查一下这几个函数的调用处(用搜索的工具), 如果不一致的地方要改过来.
+
+>
+设计文档和模块信息都要加入当前的状态信息, 状态信息分类在bkc_mod_designmet_info.txt中.
+相应实现的头文件中可以表明相应模块的状态, 相应设计文档也可以表明当前所处的状态(命名的时候可以考虑加入此信息| name_date_v_s).
+
+>
+设计常记还是designment, 这是个问题.目前这两中命名的都有.
+找个时间进行修改,
+designment吧,
+保持一致, 越实用越好, trunk_doc都统一下用英文名字, 方便头文件中引用.
+
+>
+新的可裁减体系编译系统的引入
+
+>
+所有存在模块是否编入了bkc中, 这点需要再检查一遍, 目前是没有全部编入,
+这一步要在新的可裁减体系完成后来作.
+
+
+>
+准备新添加的模块
+>>
+对于新添加的模块应该都有相应的模块设计
+>>
+此记录暂时放在此文档中, 最终会放到bkc_mod_designment_info.txt中
+
+>>
+time 模块
+[ok]
+已添加
+
+>>
+timer 模块
+[ok]
+已添加
+
+>>
+net 模块
+[ok]
+已添加
+
+>>
+socket模块
+[ok]
+已添加
+
+>>
+pasync模块
+[ok]
+已添加
+
+>>
+md5模块
+[nc]
+
+>>
+cksum模块
+[nc]
+
+>>
+fs模块
+[nc]
+
+>>
+htable模块
+[nc]
+
+>>
+fs 模块－存储体的概念
+那么pthread模块可用到这个概念(所有文件操作都可用到这个概念)
+[nc]
+
+>
+要把bkc模块依赖关系重新整理一下，最好更新相应的文档.
+
+
+>
+准备新添加的设施和功能
+>>
+裁减系统
+[nc]
+
+
+>
+bkc_stack.c中要添加固定个数的stack，以方便操作，超过的就只放到尾巴处.
+bkc_queue.c中也要添加固定个数的queue, 以方便操作，超过的就把头部挤出去.
+bkc_time.c中用得着, 这可以把所有的已destroy的线程放入stack中.
+
+>
+bkc_test.c
+可以有一个主测试应用，来调用各个小木块的测试例子.
+
+>
+要整理一下模块模板结构，比如out文件夹将不出现在所有的模块中，
+只有确实有输出需要的才加入这个文件夹.这个需要考虑一下.
+不过有一个是确认的:build下增加了两个支持的文件夹:
+res_ready:用于build时需要的非代码或者非库的资源文件.如要处理的文档和既有数据源.
+
+comm_rules_utils:用于辅助Makefile的一些策略和工具或者脚本.
+这个目前认为没有必要单独建立一个文件夹，就放在./build的同级别目录下即可.简单明了.
+
+还有一个要考虑的是:test的执行文件到底放到哪里?目前认为应该放到:test目录下,
+还有一个选择就是放到build目录下，这可以给调试带来方便.恩build其实可以理解为一个
+加工车间, 输入的是相关文件夹的原料,产品就是任何要输出到指定地点的东西，包括lib, 可执行文件， test文件.
+./build只是一个临时的存放地点.
+所以多需要一步:make distribute.这样各就其位了. 该out的放out， lib的放lib,  test的test.
+make install 是以后需要考虑的.这可能并不适合embedded development.
+./build 下目前容许一个冗余：可提供开发的方便,
+即可执行程序可临时在./build生成, 发布的时候才放到out中去.方便调试，不用切换目录
+但test别放这下面,不太合适，可能有的test需要特殊支持测试的数据文件，所以直接放到test下
+同样适合friend模块
+
+现在有如下规划需要修改:makefile:
+把lib放入out中，其实可删去lib文件夹, 因为out就代表了该模块的所有输出.
+已改掉的模块目前只有主模块的makefile.
+
+
+>
+要整理一下此文档本身的结构了
+
+>
+bkc_string.c模块中添加了四个功能函数需要测试
+
+>
+bkc_string.c中还需要继续实现的几个功能函数是:
+a1.int bkc_string_cmpspec(bkc_string_t *dstr_p, int dspos , int dlen,
+        bkc_string_t *sstr_p, int sspos, int slen);
+a2.
+int bkc_string_cpyspec(bkc_string_t *dstr_p, int dpos, bkc_string_t *sstr_p,
+        int spos, int *len_p, bkc_string_cpy_mode_m mode);
+注意多了一个mode,这是根据实际需要产生的需求, 属于完善性质的.
+a3.
+bkc_string_t *bkc_string_dupspec(bkc_string_t *str_p, int spos, int *len_p);
+a4.
+完成后要进行相应的测试和相应的替换.
+主要是要替换相应的spec到非spec的实现.
+
+int bkc_string_insnchar(bkc_string_t *str_p, int pos, char ch);
+char bkc_string_getnchar(bkc_string_t *dstr_p, int pos);
+这两个函数已经添加但还没有测试.
+
+>
+>>
+由于bkc_stack中增加了errthrow，sucret， 并去掉了
+BKC_STACK_SPF_CKSRET.
+也许之前的模块可以考虑去掉这种方式。(string dlist的两个模块)
+
+>>
+有必要建立一个模块更迭时间表，这样可以清楚的知道，之前那些模块
+可能需要进行机制的替换
+a
+c--------b
+d----e-----f-------g
+从底层往上来，一旦上层有相关的修改，下层就可以考虑是否可以采用新的
+机制来实现，注意基本接口不改变，增加稳定性才是目的
+
+>>
+目前要修整的模块，而且还没有修整的模块列表为
+bkc_stack  bkc_queue bkc_time
+注意，需要在主makefile中，把这些模块以及 bkc_string这个模块加入大包.
+
+>>
+模块之间的依赖关系，最好整理一张图，放进来，
+这张图很重要，也需要不停进行更新
+
+>>
+注意要准备加入： string_reinfo这个接口
+
+>>
+dlist 也许需要加入dlsit之间的合并接口，这在后面用到的时候来做.
+
+>[###################时间段:20091206-2010xxx]
+
+
+>[###########################要做的事list\]
+
+
+
+>[版本更新recording]
+>
+记录当前版本的主体更新
+
+>
+v1.0.2
+>>
+
+>[###########################版本更新recording\]
+
+
+
+>[relative and hints]
+
+
+>
+周一小时的维护:(轮换)
+1.  bugs
+2. 更新specific aims to total description position.
+Forum maintenance , fri alter, after
+
+
+>
+如何组织devdaily文档:
+rules: 有选择, 留爪印.
+steps:
+a1. 到了一定阶段首先cp一份, 并添加tag命名(作为本阶段的一个镜像)
+a2. 再cp一份, 添加命名为tag_change(作为后续对tag版本的些许更改记录)
+a3. 再cp 一份, 添加命名为xxx_new_step(这份将在其中做删减, 并作为后续xxx版本的开始)
+忘也忘不了， 啊...
+忘不了就留着慢慢忘...
+忘记呀,忘记, 月亮呀, 又天黑了...
+
+>
+模块自动生成设施的设计
+1. find 到所有的指定文件.
+2. 把得到的文件用sed在其中进行替换, 注意, 要大小写敏感:
+a1. BKC_MOD 被替换成用户指定的modname 的大写.
+a2. bkc_mod 被替换成用户指定的modname 的原样字符.
+>>
+man find
+>>
+find ./bkc_mod_template -name '*.[c|h]' -type f -print
+find ./bkc_mod_template -name 'Makefile' -type f -print
+
+>>
+       s/regexp/replacement/
+       sed [OPTION]... {script-only-if-no-other-script} [input-file]...
+sed -e 's/BKC_PTHREAD/BKC_MOD/g' -e 's/bkc_pthread/bkc_mod/g'
+
+
+>[mod group info]
+这一小节先放在这里, 最终会放到bkc_mod_designment_info.txt中， 并在bkc.h的头文件中
+加以说明
+>
+目前有两个group概念, 即相应功能组.
+1. bkc_string_group.h
+提供string相关的一切操作,
+
+2. bkc_net_group.h
+提供net相关的一切操作.
+
+虽然用户可单独任意包含一个特殊的功能,但group就是为一个这个目标设计的, 否则用户可能需要为一个目标包含多个相关头文件,
+比如网络, 用户要手动包含bkc_net.h, bkc_socket.h.
+
+>[#############################mod group info \]
+
+
+
+>
+有这样一个考虑,socket和net其实是两个概念,net概念是用户为网络操作提供相关支持功能但不包括socket,
+socket提供连接对象描述机制,为net提供了底层的协议支持, 也是用户常常单独需要的一个功能.
+
+ 虽然socket由fd发展而来, 但其描述功能已超过前者,
+我们可以做如下想象了: 一切都是socket(在linux下).
+
+用户要的其实是net的一个操作界面,包括net支持功能也包括socket,所以应该有一个net_group.h
+这样一个组.
+
+
+
+>
+bkc常常需要处理的事情可分为以下几类:
+
+1. 模块/设施/应用 设计.
+      经常会涉及相应的测试流程设计, 新功能或外部模块的融入设计.
+      可以周日晚上进行
+
+2. 模块实现(包括帮助文档的编写).
+      可以周日下午进行
+
+3. 模块fs测试
+      可以周日下午进行
+
+4. 重大结构和设施的更新
+      可以周日下午进行
+
+5. 相关文档编写(非设计文档(包括整理devdaily)), 结构调整， 模块添加.
+      周日上午进行(两周一次)
+
+6. 模块rr测试, bug更新.
+      周日上午进行（两周一次), 前者优先级高点.
+
+
+
+>
+临战策略1
+1. 1-5 新模块实现
+2. 六晚上:
+     相关文档编写(非设计文档,如preface_story,(包括整理devdaily)), 结构调整， 模块添加(时间充足的话可进行模块rr测试).
+3. 天晚上:
+     模块rr测试, bug更新.
+4. 天早上:
+    模块/设施/应用 设计.
+
+
+
+>
+缩写临时总结
+ta ｜ ts
+ta表示to be added
+ts表示to be tested(需要继续进行测试的函数)
+tu表示需要更新的相关地点
+td表示马上或等下就会去看看的地方
+gidea 表示a good idea
+ntbd  表示need to be done
+ipmh 表示important hints
+imp 表示important的记录.
+adding 表示新添加的内容.
+mws 表示my words
+fg 表示一些feeling
+fgot 表示finally got
+mdf 表示modified
+>[###########################relative and hints\]
+
+
+
+>[临时笔记本]
+
+>
+makefile segment
+
+	@echo ""
+	@echo "[#building all subsidiary modules]"
+	@echo ""
+	for sin_mod in $(bkc_mk_submod_list); do \
+        echo "" ;\
+        echo "[#making module: $$sin_mod]"; \
+        ${MAKE} -C $(bkc_mk_mtopdir)/src/$$sin_mod/build; \
+        echo "[#mv module output]"; \
+        $(CP) -fv $(bkc_mk_mtopdir)/src/$$sin_mod/out/lib$$sin_mod.a $(bkc_mk_mtopdir)/build; \
+    done
+	@echo ""
+
+	@echo ""
+	@echo "[#building all neighbor modules]"
+	@echo ""
+	for sin_mod in $(bkc_mk_nbmod_list); do \
+        echo "" ;\
+        echo "[#making module: $$sin_mod]"; \
+        ${MAKE} -C $(shell cd $(bkc_mk_mtopdir)/..; pwd)/$$sin_mod/build; \
+        echo "[#mv module output]"; \
+        $(CP) -fv $(shell cd $(bkc_mk_mtopdir)/..; pwd)/$$sin_mod/out/lib$$sin_mod.a $(bkc_mk_mtopdir)/build; \
+    done
+	@echo ""
+
+>
+条件和mutex的操作
+/*condition for printing daemon*/
+pthread_cond_t bkc_pthread_dae_pint_cond;
+/*mutex for bkc_pthread_dae_pint_cond*/
+pthread_mutex_t bkc_pthread_dae_pint_mutex;
+
+ret = pthread_mutex_init(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex), NULL);
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_mutex_lock(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_cond_init(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_cond), NULL);
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+
+ret = pthread_mutex_unlock(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_mutex_destroy(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_mutex) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+ret = pthread_cond_destroy(
+    &(bkc_pthr_specdata.bkc_pthread_dae_pint_cond) );
+BKC_FC_CT(ret == 0, 1, BKC_PTHREAD_RERR, NULL);
+
+>
+注意保留前面的空格
+
+    BKC_DITT(BKC_STACK_RET_SUC, 0);
+    bkc_stack_t *stack_p = NULL;
+
+    BKC_FLOWCONTROL_TRY {
+        bkc_dlist_t *dlist_p = NULL;
+        bkc_dlist_operator_t op;
+
+        stack_p = BKC_MALLOC(sizeof(bkc_stack_t));
+        BKC_FC_CKTHROW(stack_p != NULL, 1, BKC_STACK_RET_ERR);
+
+        bkc_dlist_definit_op(&op);
+        op.opcode = BKC_DLIST_OPCODE_CREATE_LIST;
+        dlist_p = bkc_dlist_create(&op);
+        BKC_FC_CKTHROW(dlist_p != NULL, 2, BKC_STACK_RET_ERR);
+        BKC_RF(stack_p)->dlist_p = dlist_p;
+        BKC_CKPRT(BKC_RF(stack_p)->dlist_p != NULL);
+    }
+
+    BKC_FLOWCONTROL_CATCH {
+        BKC_FC_CASE (1) {
+            stack_p = NULL;
+            BKC_FC_BREAK;
+        }
+        BKC_FC_CASE (2) {
+            BKC_SFREE(stack_p);
+            stack_p = NULL;
+            BKC_FC_BREAK;
+        }
+        BKC_FC_DEFAULT {
+            BKC_FC_BREAK;
+        }
+    }
+
+    BKC_CKPRET(stack_p != NULL);
+    BKC_RETURN(stack_p);
+
+
+
+>[###########################临时笔记本\]
+
+
+
+
+>[观点杂记]
+
+>dlist可以做成一个命令解释器
+
+>dlist可以做成一个状态跳转机器
+
+>用户可以直接得到第一项, 下一项操作, 在指定指针前面或者后面来插入.
+
+>
+dlist工程的主线文档由以下几个组成
+1. main_points(主旨, 怎么用)
+2. 模块的测试进度
+3. 文档沙河
+a1. 注意事项,
+a2. 如何保持头脑清醒
+a3. 如何去发现
+a4. 测试方法, 架构测试方法
+a5. 本工程来来由历史, 源头性故事.
+
+
+>[##########################观点杂记\]
+
+
+>[update log]
+>
+20091206.夜.12:53
+bkc_devdaily_id_sizhe_20091206.txt
+
+>[##########################update log\]

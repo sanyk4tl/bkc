@@ -1,0 +1,267 @@
+#env
+#for mipsel arch
+#CROSS_COMPILE=mipsel-linux-
+#toolChainDir = /opt/toolchains/crosstools_sf-linux-2.6.12.0_gcc-3.4.6-20
+#_uclibc-0.9.28-20050817-20070131
+#toolChainBinDir = $(toolChainDir)/bin
+#toolChainLibDir = $(toolChainDir)/mipsel-linux-uclibc/lib
+#CC      = $(toolChainBinDir)/$(CROSS_COMPILE)gcc
+#CPP     = $(toolChainBinDir)/$(CROSS_COMPILE)cpp
+#CXX     = $(toolChainBinDir)/$(CROSS_COMPILE)c++
+#LD      = $(toolChainBinDir)/$(CROSS_COMPILE)ld
+#AS      = $(toolChainBinDir)/$(CROSS_COMPILE)as
+#AR      = $(toolChainBinDir)/$(CROSS_COMPILE)ar
+#NM      = $(toolChainBinDir)/$(CROSS_COMPILE)nm
+#STRIP   = $(toolChainBinDir)/$(CROSS_COMPILE)strip
+#OBJCOPY = $(toolChainBinDir)/$(CROSS_COMPILE)objcopy
+#OBJDUMP = $(toolChainBinDir)/$(CROSS_COMPILE)objdump
+#RANLIB  = $(toolChainBinDir)/$(CROSS_COMPILE)ranlib
+
+#for x86_32_64 arch
+CC      = gcc
+CPP     = cpp
+CXX     = c++
+LD      = ld
+AS      = as
+AR      = ar
+NM      = nm
+STRIP   = strip
+OBJCOPY = objcopy
+OBJDUMP = objdump
+RANLIB  = ranlib
+
+CP      = cp -f
+RM      = rm -rf
+SORT    = sort
+SED     = sed
+TOUCH   = touch
+MKDIR   = mkdir -p
+MV      = mv
+SET     = set
+SED     = sed
+
+##########################################################################
+#dirs for this lib
+##########################################################################
+#module pushed flag
+#pushedmode = no_pub designating that this module is not pushed out yet, 
+#    and is still on developing. the head files which will be published 
+#    later will be put in the include dir, head files only used innerly 
+#    in the module will put in the modtpt/src in modtpt/include.
+#pushedmode = pub_out 
+#pushedmode = pub_inn 
+#    designating that developing is completed and this module is 
+#    pushed out.
+#    head files which need to be published (originall in modtpt/include)
+#    will be put in the topper level dirs
+#    this will have two positions(promising xxx module will 
+#    contain the modtpt)
+#
+#    1. pushedmode = pub_inn
+#       xxx/src/include
+#       this position means modtpt is only pushed out for the inner 
+#       using in xxx module
+#    2, pushedmode = pub_out
+#       xxx/include
+#       this position means modtpt is pushed out for outter using 
+#       in xxx module
+#
+#at the beginning of creating a module, ispushedmodule  could be set as
+#pushedmode = no_pub. once upon being finished,
+#pushedmode  can be set to pub_out or pub_inn, and the head files in 
+#modtpt can moved to the right dir
+#in the topper module.
+pushedmode = pub_out
+
+#module name
+tlmname := bkc_stack
+tllname := libbkc_stack.a
+
+#overall bkc dir
+bkcdir := $(shell cd ../../../; pwd)
+
+#top dir for this module
+tltdir := $(shell cd ../; pwd)
+
+#public include dir(the topper include dir)
+ifeq ($(pushedmode),pub_out)
+    tlpubincdir := $(shell cd $(tltdir)/../../include; pwd)
+else ifeq ($(pushedmode),pub_inn)
+    tlpubincdir := $(tltdir)/include
+else
+    tlpubincdir := $(tltdir)/include
+endif
+
+#test dir
+tltestdir := $(tltdir)/test
+#src dir
+tlsrcdir := $(tltdir)/src
+#include dir
+tlincludedir := $(tltdir)/include
+#lib dir
+tllibdir := $(tltdir)/lib
+#out dir
+tloutdir := $(tltdir)/out
+#build dir
+tlbuilddir := $(tltdir)/build
+
+##########################################################################
+#sublib modules for this lib
+##########################################################################
+#sublib list
+#none defaultly, if any can be listed here
+slmname_xxx = # 
+sllname_xxx = #
+
+##################################
+#for slmname_xxx in bkc_stack
+##################################
+slmname := $(slmname_xxx)
+sllname := $(sllname_xxx)
+#sublib top dir
+sltdir_$(slmname) := $(tltdir)/src/$(slmname)
+
+#sublib test dir
+sltestdir_$(slmname) := $(sltdir_$(slmname))/test
+
+#sublib src dir
+slsrcdir_$(slmname) := $(sltdir_$(slmname))/src
+
+#sublib include dir
+slincludedir_$(slmname) := $(sltdir_$(slmname))/include
+#sublib lib dir
+sllibdir_$(slmname) := $(sltdir_$(slmname))/lib
+
+#sublib out dir
+sloutdir_$(slmname) := $(sltdir_$(slmname))/out
+
+#sublib build dir
+slbuilddir_$(slmname) := $(sltdir_$(slmname))/build
+
+##########################################################################
+#CFLAGS
+##########################################################################
+
+CFLAGS += -fno-exceptions -DLINUX -D_GNU_SOURCE=1 \
+    -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE \
+    -DBSTD_CPU_ENDIAN=BSTD_ENDIAN_LITTLE -DB_SYSTEM_linux=1 -D_linux_
+#current src dir, a positio for mutual reference for inner modules
+CFLAGS += -I ./ 
+#dir for the inner modules which will be published out after the whole
+#module is finished.
+CFLAGS += -I$(tlincludedir)
+#public include dir(topper include dir)
+CFLAGS += -I$(tlpubincdir)
+
+#LDFLAGS
+
+##########################################################################
+#all target
+##########################################################################
+.PHONY:clean test
+all : $(tllname) $(tllibdir)/$(tllname)
+
+#src files
+tlsrcfiles := $(shell cd $(tlsrcdir); ls *.c)
+
+%.d:%.c
+	@set -e;\
+	rm -f $@;\
+	$(CPP) $(CFLAGS) -MM  $< > $@.$$$$;\
+	sed -e 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	$(RM)  $@.$$$$
+
+-include $(tlsrcfiles:.c=.d)
+
+#object files
+tlobjectfiles := $(patsubst %.c,%.o,$(tlsrcfiles))
+
+#comile top lib src files
+vpath %.c $(tlsrcdir)
+%.o: %.c
+	@echo ""
+	@echo "===========>compiling ["tlmname"]["$<"]========================="
+	@echo ""
+	$(CC) $(CFLAGS) -g -w -c $< -o $@
+	@echo "<===========compiling ok ["tlmname"]["$<"]======================"
+	@echo ""
+
+#make every sublibs and cp lib to top libdir
+$(sllname_xxx): 
+	@echo ""
+	@echo "************>[make sublib]["$(sllname_xxx)"]*************"
+	${MAKE} -C $(slbuilddir_xxx) all
+	@echo "<*********[make sublib ok]["$(sllname_xxx)"]*************"
+	@echo ""
+	$(CP) $(sllibdir_submodule)/$(sllname_submodule)  $(tlbuilddir)
+
+$(tllname) : $(tlobjectfiles) $(sllname_xxx)
+#	@echo $(sllname_xxx)
+#	@echo $(slmname_xxx)
+#	@echo $(sltdir_xxx)
+#	@echo $(slsrcdir_xxx)
+#	@echo $(slbuilddir_xxx)
+#	@echo $(slincludedir_xxx)
+#	@echo $(sllibdir_xxx)
+#	@echo $(sloutdir_xxx)
+#	@echo $(sltestdir_xxx)
+
+#	@echo $(tllname)
+#	@echo $(tltdir)
+#	@echo $(tltestdir)
+#	@echo $(tlsrcdir)
+#	@echo $(tlincludedir)
+#	@echo $(tllibdir)
+#	@echo $(tloutdir)
+#	@echo $(tlbuilddir)
+	@echo $(tlpubincdir)
+	@echo ""
+	@echo "++++++++++++++++++>[archiving ]["$(tllname)"]+++++++++++++++++++"
+	@echo ""
+	@echo "---------->[unarchiving sublib]["$(sllname_xxx)"]---------"
+	@echo "need no sublib unarchiving"
+	@echo "<----------[unarchiving sublib ok]["$(sllname_xxx)"]------"
+	@echo ""
+	@echo "---------->[archiving all objects]["$(tllname)"]----------------"
+	$(AR) rcs $@  *.o
+	$(RANLIB) $@
+	$(CP) $@  $(tllibdir)
+	$(RM) $(sllname_bkc_dlist)
+	@echo "<----------[archived all objects ok]["$(tllname)"]--------------"
+	@echo ""
+	@echo "<++++++++++[archiving ok]["$(tllname)"]Congratulations!!!+++++++"
+	@echo ""
+
+
+##########################################################################
+#test target
+##########################################################################
+#for test
+tltestfl += -lm 
+tltestfl += -L$(tllibdir) -l$(tlmname)
+
+#test src files
+vpath %.c $(tltestdir)
+tltestsrcfiles := $(shell cd $(tltestdir); ls *.c)
+tltestoutfn := $(shell cd $(tltestdir); ls $(tlmname)_test*.c)
+tltestout := $(patsubst %.c,%,$(tltestoutfn))
+
+test : $(tltestsrcfiles)
+	@echo ""
+	@echo "===========>compiling["$(tltestsrcfiles)"]["$<"]================"
+#	@echo $(tltestsrcfiles)
+#	@echo $(tltestoutfn)
+#	@echo $(tltestout)
+	@echo ""
+	$(CC) $(CFLAGS) $^ -o $(tltestout) $(tltestfl)
+	$(MV) $(tltestout) $(tltestdir)
+	@echo "<===========compiling ok["$(tltestsrcfiles)"]["$<"]============="
+	@echo ""
+	@echo ""$(tltestdir)/$(tltestout)" has been created, please try it now "
+	@echo "Goooood Luck!!!"
+	@echo ""
+#########################################################################
+#clean target
+#########################################################################
+clean:
+	$(RM) $(tlbuilddir)/*.o $(tlbuilddir)/*.d $(tlbuilddir)/*.a

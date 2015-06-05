@@ -1,0 +1,27 @@
+how to add a module in bkc
+==========================
+ 
+add a module is simple in bkc now with the help of 
+gdg_creat_mod.sh script.
+ 
+if want to add a module named bkc_hello, can just take the 
+follows steps
+ 
+1. create the new module
+ 
+#cd bkc/auxiliary/sandbox/bkc_multicube/gadgets
+#./gdg_creat_mod.sh bkc_hello
+ 
+  then a independent module named bkc_hello is added to 
+  the position bkc/src/bkc_hello, it can be built independently
+  in it's build directory bkc/src/bkc_hello/build
+ 
+2. add the independent new module to bkc
+#vi bkc/auxiliary/sandbox/bkc_multicube/gadgets/gdg_cp_mf_allmods.sh
+  
+  find the variable cmpfa_almodlist, and add the bkc_hello to the tail,
+  just like this.
+  cmpfa_almodlist="bkc_dlist bkc_pasync bkc_hello"
+  save gdg_cp_mf_allmods.sh and quit vi
+ 
+#./gdg_cp_mf_allmods.sh

@@ -1,0 +1,16 @@
+self-mending
+----------------
+
+>[22:21 2009-5-17]
+
+  new added:
+
+  self-modified:
+  1. add BKC_DLIST_OPCODE_FIND_N_NODE operation code
+  2. add BKC_DLIST_OPCODE_GET_NODE_NUM operation code
+
+>[22:21 2009-5-17\]
+
+
+more aims
+---------------

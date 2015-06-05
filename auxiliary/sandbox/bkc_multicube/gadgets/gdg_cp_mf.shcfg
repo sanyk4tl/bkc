@@ -1,0 +1,36 @@
+#! /bin/sh
+
+
+########################################
+#the path of the makefile which
+#will be copied to. for convenience,
+#keyword BKC_TOPDIR representates
+#the toplevel dir of the whole bkc, and
+#need to appear at the beginning of
+#the given path. it default to be
+#BKC_TOPDIR
+#
+env_cpmf_mk_destpath=BKC_TOPDIR/src/bkc_sandbox/build
+
+########################################
+#vars for makefile, and can be
+#set from the command-line arguments
+#
+
+# set vars to default value
+env_bkc_mk_modname=bkc_sandbox
+env_bkc_mk_submod_list=\#
+env_bkc_mk_nbmod_list=\#
+
+#module location can be:
+#bkc_mk_location_toplevel(for toplevel module, like the total bkc module)
+#bkc_mk_location_embeded(for any inner module, like bkc_dlist)
+env_bkc_mk_mod_location=bkc_mk_location_embeded
+
+#BKC_MK_TOPDIR is the keywords used in the makefile, which
+#means the toplevel dir of this module
+
+#module exposure path
+env_bkc_mk_ep=BKC_MK_MOD_TOPDIR/../../include
+#module share path
+env_bkc_mk_sp=BKC_MK_MOD_TOPDIR/../../build
